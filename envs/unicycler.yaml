@@ -1,0 +1,8 @@
+name: unicycler
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.5.5
+  - unicycler

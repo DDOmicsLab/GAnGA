@@ -1,0 +1,891 @@
+
+data_dir = config["outdir"]
+
+current_directory = os.getcwd()
+db_dir = os.path.join(current_directory,"databases")
+tools_dir = os.path.join(current_directory,"tools")
+
+rule all:
+    input: 
+        expand(
+            [
+            os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"),
+            os.path.join(data_dir, "{sample}/01_fastqc"),
+            os.path.join(data_dir, "{sample}/00_trimmed_reads/Fastqc"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/checkm.log"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu_summary.tsv"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.archaea.txt"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.bacteria.txt"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.fna"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_assembly/table.txt"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/checkm.log"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu_summary.tsv"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.archaea.txt"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.bacteria.txt"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.fna"),
+            os.path.join(data_dir,"{sample}/03_checkm/post_polish/table.txt"),
+            os.path.join(data_dir, "{sample}/03_quast/post_assembly/report.tsv"),
+            os.path.join(data_dir, "{sample}/03_quast/post_assembly/report.html"),
+            os.path.join(data_dir, "{sample}/03_quast/post_assembly/quast.log"),
+            os.path.join(data_dir, "{sample}/03_quast/post_polish/report.tsv"),
+            os.path.join(data_dir, "{sample}/03_quast/post_polish/report.html"),
+            os.path.join(data_dir, "{sample}/03_quast/post_polish/quast.log"),
+            os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_assembly.txt"),
+            os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_polish.txt"),
+            os.path.join(data_dir, "{sample}/09_prodigal/{sample}_genes.gbk"),
+            os.path.join(data_dir, "{sample}/09_prodigal/{sample}_proteins.faa"),
+            os.path.join(data_dir, "{sample}/09_prodigal/{sample}_gene_sequences"),
+            os.path.join(data_dir,"{sample}/09_prodigal/{sample}.tsv"),
+            os.path.join(data_dir, "{sample}/11_barrnap/{sample}_rrna.fa"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.faa"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.ffn"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gff3"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.png"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.svg"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.tsv"),
+            os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.txt"),
+            os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.txt"),
+            os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.json"),
+            os.path.join(data_dir, "{sample}/13_phigaro/rule.done"),
+            os.path.join(data_dir, "{sample}/05_ezaai/{sample}_aai.tsv"),
+            os.path.join(data_dir, "{sample}/05_pocp/pocp-matrix.tsv"),
+            os.path.join(data_dir, "{sample}/14_mlst/{sample}_mlst.csv"),
+            os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
+            os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.summary.csv"),
+            os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.tsv"),
+            os.path.join(data_dir,"{sample}/16_crispr/{sample}_crispr_prediction.csv"),
+            os.path.join(data_dir,"{sample}/17_panvita/Results_vfdb"),
+            os.path.join(data_dir, "{sample}/18_genovi/rule.done"),
+            os.path.join(data_dir,"{sample}/19_antismash/index.html"),
+            os.path.join(data_dir, "{sample}/20_report/{sample}_absolute_paths.txt"),
+            os.path.join(data_dir,"{sample}/20_report/{sample}_report.html"),
+            ],sample=config["samples"]
+        ),
+        
+rule validate_taxa:
+    input:
+        tsv_file=os.path.join(current_directory, "scripts/valid_taxa.tsv")
+    output:
+        touch(os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"))
+    params:
+        genus=lambda wildcards:config["samples"][wildcards.sample]["genus"],
+        species=lambda wildcards:config["samples"][wildcards.sample]["species"],
+    shell:
+        """
+        if grep -Fxq "{params.genus}\t{params.species}" {input.tsv_file}; then
+            echo "✅ Valid genus/species: {params.genus} {params.species}";
+            touch {output};
+        else
+            echo "❌ ERROR: Invalid genus/species '{params.genus} {params.species}' not found. May be a spelling error!" >&2;
+            exit 1;
+        fi
+        """         
+
+
+rule FastQC_pretrim:
+    input:  
+        r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
+        r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
+        
+    output:
+        directory(os.path.join(data_dir, "{sample}/01_fastqc")),
+    params:
+        options=lambda wildcards:config["parameters"]["fastqc"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/fastqc.log"),
+    threads:
+        20
+    shell:
+        """
+        mkdir -p {output}
+        fastqc -o {output} --noextract -f fastq {input.r1} {input.r2} {params.options} -t {threads} &> {log}
+        """
+
+rule Trimmomatic:
+    input:
+        valid_taxa=os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"),
+        r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
+        r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
+    output:
+        forward_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
+        forward_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_unpaired.fastq.gz"),
+        reverse_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
+        reverse_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_unpaired.fastq.gz"),
+    params:
+        options=lambda wildcards:config["parameters"]["Trimmomatic"],
+    conda:
+        "envs/trimmomatic.yaml"
+    log:
+        os.path.join(data_dir,"{sample}/logs/trimmomatic.log"),
+    threads:
+        10
+    shell:
+        """
+         trimmomatic PE -threads {threads} -phred33 {input.r1} {input.r2} {output.forward_paired} {output.forward_unpaired} {output.reverse_paired} {output.reverse_unpaired} {params.options} &> {log}
+        """   
+
+rule Referencereformat:
+    input:
+        reference=lambda wildcards:config["samples"][wildcards.sample]["reference_fasta"]
+    output:
+        os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+    params:
+        temp_fasta=os.path.join(data_dir,"{sample}/00_trimmed_reads/temp_reference.fasta"),
+    shell:
+        """
+        touch {output}
+        sed  's/|/_/g' {input.reference} > {params.temp_fasta}
+        count=0
+
+        
+        
+            while IFS= read -r line
+            do
+                if [[ $line == ">"* ]]; then
+                    count=$((count + 1))
+                    echo ">contig_$count" >> {output}
+                else
+                    echo "$line" >> {output}
+                fi
+            done < {params.temp_fasta}
+        """
+
+rule FastQC_posttrim:
+    input:
+        trimmed_r1=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
+        trimmed_r2=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
+        
+    output:
+        directory(os.path.join(data_dir, "{sample}/00_trimmed_reads/Fastqc")),
+    params:
+        options=lambda wildcards:config["parameters"]["fastqc"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/fastqc.log"),
+    threads:
+        20
+    shell:
+        """
+        mkdir -p {output}
+        fastqc -o {output} --noextract -f fastq {input.trimmed_r1} {input.trimmed_r2} {params.options} -t {threads} &> {log}
+        """
+
+rule Unicycler:
+    input:
+        trimmed_r1=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
+        trimmed_r2=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
+    output:
+        os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+    params:
+        outdir=directory(os.path.join(data_dir, "{sample}/02_unicycler")),
+        options=lambda wildcards:config["parameters"]["Unicycler"],
+    conda:
+        "envs/unicycler.yaml"
+    log:
+        os.path.join(data_dir,"{sample}/logs/unicycler.log"),
+    threads:
+        40
+    shell:
+        """
+        unicycler -1 {input.trimmed_r1} -2 {input.trimmed_r2} -o {params.outdir} {params.options} -t {threads} &> {log}
+        """
+
+
+rule CheckM_post_assembly:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+    	flag=os.path.join(current_directory, "flags/checkm.done")
+    output:
+        log=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/checkm.log"),
+        summary=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu_summary.tsv"),
+        ssu_archaea=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.archaea.txt"),
+        ssu_bacteria=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.bacteria.txt"),
+        ssu=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/ssu.fna"),
+        fna=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fna"),
+        post_assembly_comepleteness_table=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/table.txt"),
+    params:
+        assembly_dir=os.path.join(data_dir, "{sample}/02_unicycler/"),
+        outdir=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/"),
+        db_path=os.path.join(db_dir,"checkm"),
+        options=lambda wildcards:config["parameters"]["checkm"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/checkm_post_assembly.log")
+    threads:
+        20
+    conda:
+        "envs/checkm.yaml"
+    shell:
+        """
+        export CHECKM_DATA_PATH={params.db_path}
+        cp {input.assembly} {output.fna}
+        checkm lineage_wf {params.assembly_dir} {params.outdir} -t {threads} &> {output.post_assembly_comepleteness_table}
+        sed -i '1,34d' {output.post_assembly_comepleteness_table}
+        checkm ssu_finder {input.assembly} -x fasta {params.assembly_dir} {params.outdir} {params.options} -t {threads} &> {log}
+        """
+
+rule CheckM_post_polish:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    	flag=os.path.join(current_directory, "flags/checkm.done")
+    output:
+        log=os.path.join(data_dir,"{sample}/03_checkm/post_polish/checkm.log"),
+        summary=os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu_summary.tsv"),
+        ssu_archaea=os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.archaea.txt"),
+        ssu_bacteria=os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.bacteria.txt"),
+        ssu=os.path.join(data_dir,"{sample}/03_checkm/post_polish/ssu.fna"),
+        fna=os.path.join(data_dir, "{sample}/08_pilon/{sample}.fna"),
+        post_polish_comepleteness_table=os.path.join(data_dir,"{sample}/03_checkm/post_polish/table.txt"),
+    params:
+        assembly_dir=os.path.join(data_dir, "{sample}/08_pilon/"),
+        outdir=os.path.join(data_dir,"{sample}/03_checkm/post_polish"),
+        db_path=os.path.join(db_dir,"checkm"),
+        options=lambda wildcards:config["parameters"]["checkm"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/checkm_post_polish.log")
+    threads:
+        20
+    conda:
+        "envs/checkm.yaml"
+    shell:
+        """
+        export CHECKM_DATA_PATH={params.db_path}
+        cp {input.assembly} {output.fna}
+        checkm lineage_wf {params.assembly_dir} {params.outdir} -t {threads} &> {output.post_polish_comepleteness_table}
+        sed -i '1,34d' {output.post_polish_comepleteness_table}
+        checkm ssu_finder {input.assembly} -x fasta {params.assembly_dir} {params.outdir} {params.options} -t {threads} &> {log}
+        """
+
+rule Quast_post_assembly:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta")
+    output:
+        tsv=os.path.join(data_dir, "{sample}/03_quast/post_assembly/report.tsv"),
+        html=os.path.join(data_dir, "{sample}/03_quast/post_assembly/report.html"),
+        log=os.path.join(data_dir, "{sample}/03_quast/post_assembly/quast.log"),
+    params:
+        outdir=os.path.join(data_dir, "{sample}/03_quast/post_assembly"),
+        options=lambda wildcards:config["parameters"]["quast"],
+    log:
+        os.path.join(data_dir, "{sample}/logs/quast_post_assembly.log")
+    threads:
+        20
+    shell:
+        """
+        quast.py -o {params.outdir} -r {input.reference} --circos {input.assembly} 
+        """
+
+rule Quast_post_polish:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta")
+    output:
+        tsv=os.path.join(data_dir, "{sample}/03_quast/post_polish/report.tsv"),
+        html=os.path.join(data_dir, "{sample}/03_quast/post_polish/report.html"),
+        log=os.path.join(data_dir, "{sample}/03_quast/post_polish/quast.log")
+    params:
+        outdir=os.path.join(data_dir, "{sample}/03_quast/post_polish"),
+        options=lambda wildcards:config["parameters"]["quast"],
+    log:
+        os.path.join(data_dir, "{sample}/logs/quast_post_assembly.log")
+    threads:
+        20
+    shell:
+        """
+        quast.py -o {params.outdir} -r {input.reference} --circos {input.assembly}
+        """
+
+rule FastANI_post_assembly:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+    output:
+        os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_assembly.txt"),
+    params:
+        outdir=os.path.join(data_dir,"{sample}/04_fastANI"),
+        options=lambda wildcards:config["parameters"]["fastANI"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/fastani_post_assembly.log"),
+    threads:
+        20
+    conda:
+        "envs/fastani.yaml"
+    shell:
+        """
+        if [ ! -d {params.outdir} ]; then
+            mkdir -p {params.outdir}
+        fi
+        
+        fastANI -q {input.assembly} -r {input.reference} -o {output} {params.options} -t {threads} &> {log}
+        
+        """
+
+rule FastANI_post_polish:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+    output:
+        os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_polish.txt"),
+    params:
+        outdir=os.path.join(data_dir,"{sample}/04_fastANI"),
+        options=lambda wildcards:config["parameters"]["fastANI"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/fastani_post_polish.log")
+    threads:
+        20
+    conda:
+        "envs/fastani.yaml"
+    shell:
+        """
+        if [ ! -d {params.outdir} ]; then
+            mkdir -p {params.outdir}
+        fi
+        
+        fastANI -q {input.assembly} -r {input.reference} -o {output} {params.options} -t {threads} &> {log}
+        """
+
+rule RagTag:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/06_ragtag/ragtag.scaffold.fasta"),
+    params:
+        outdir=os.path.join(
+                data_dir, "{sample}/06_ragtag"
+        ),
+        options=lambda wildcards:config["parameters"]["RagTag"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/ragtag.log")
+    threads:
+        20
+    conda:
+        "envs/ragtag.yaml"
+    shell:
+        """
+        ragtag.py scaffold {input.reference} {input.assembly} -t {threads} -o {params.outdir} {params.options} &> {log}
+        """
+
+
+
+rule BWA_Samtools:
+    input:
+        r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
+        r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
+        ragtag_assembly=os.path.join(data_dir, "{sample}/06_ragtag/ragtag.scaffold.fasta"),
+           
+    
+       
+    output:
+        bwa_bam=os.path.join(data_dir, "{sample}/07_bwa/{sample}.bam")
+    
+    params:
+        outdir=os.path.join(data_dir, "{sample}/07_bwa"),
+    log:
+       os.path.join(data_dir,"{sample}/logs/bwa_samtools.log")
+    threads:
+        40
+    shell:
+       """
+        bwa index {input.ragtag_assembly} &> {log}
+        bwa mem -t {threads} {input.ragtag_assembly} {input.r1} {input.r2}| samtools view -@ 10 -b - | samtools sort -@ 10 -o {output.bwa_bam} - &> {log}
+        samtools index {output.bwa_bam} &> {log}
+
+        """
+
+
+
+rule Pilon:
+    input:
+        bwa_bam=os.path.join(data_dir, "{sample}/07_bwa/{sample}.bam"),
+        ragtag_assembly=os.path.join(data_dir, "{sample}/06_ragtag/ragtag.scaffold.fasta"),
+    output:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}.fasta"),
+        final=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    params:
+        outdir=os.path.join(data_dir, "{sample}/08_pilon"),
+        name="{sample}",
+        memory=lambda wildcards:config["parameters"]["Pilon"]["memory"],
+        temp_fasta=os.path.join(data_dir, "{sample}/08_pilon/temp.fasta"),
+    log:
+        os.path.join(data_dir,"{sample}/logs/pilon.log")
+    threads:
+        40
+
+    shell:
+        """
+        pilon --threads {threads} --genome {input.ragtag_assembly} --frags {input.bwa_bam} --outdir {params.outdir} --output {params.name} -Xmx{params.memory} &> {log}
+        sed 's/|/_/g' {output.assembly} > {output.final}
+        count=0
+
+
+        
+        
+        while IFS= read -r line
+        do
+            if [[ $line == ">"* ]]; then
+                count=$((count + 1))
+                echo ">contig_$count" >> {params.temp_fasta}
+            else
+                echo "$line" >> {params.temp_fasta}
+            fi
+        done < {output.final}
+        rm {output.final}
+        mv {params.temp_fasta} {output.final}
+        """
+
+rule Prodigal:
+    input:
+        os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    output:
+        genes=os.path.join(data_dir, "{sample}/09_prodigal/{sample}_genes.gbk"),
+        proteins=os.path.join(data_dir, "{sample}/09_prodigal/{sample}_proteins.faa"),
+        gene_seq=os.path.join(data_dir, "{sample}/09_prodigal/{sample}_gene_sequences"),
+        tsv_file=os.path.join(data_dir,"{sample}/09_prodigal/{sample}.tsv")
+    log:
+        os.path.join(data_dir,"{sample}/logs/prodigal.log")
+    threads:
+        30
+
+    shell:
+        """
+        prodigal  -i {input} -o {output.genes} -a {output.proteins} -d {output.gene_seq} -s {output.tsv_file} &> {log}
+        """
+
+
+rule Bakta:
+    input:
+        pilon_assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        flag=os.path.join(current_directory, "flags/bakta_db.done")
+    output:
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.faa"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.ffn"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.fna"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gbff"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gff3"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.png"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.svg"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.tsv"),
+        os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.txt"),
+    params:
+        prefix="{sample}_bakta",
+        genus=lambda wildcards:config["samples"][wildcards.sample]["genus"],
+        species=lambda wildcards:config["samples"][wildcards.sample]["species"],
+        outdir=os.path.join(data_dir, "{sample}/10_bakta"),
+        db_path=os.path.join(db_dir,"bakta_db/db"),
+        options=lambda wildcards:config["parameters"]["Bakta"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/bakta.log")
+    threads:
+        30
+    conda:
+        "envs/bakta.yaml"
+    shell:
+        """
+        bakta {input.pilon_assembly} --db {params.db_path} --prefix {params.prefix} --genus {params.genus} --species {params.species} --output {params.outdir} {params.options} -t {threads} &> {log}
+
+        """
+
+rule Barrnap:
+    input:
+        os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/11_barrnap/{sample}_rrna.fa"),
+    params:
+        options=lambda wildcards:config["parameters"]["Barrnap"]
+    log:
+        os.path.join(data_dir,"{sample}/logs/barrnap.log")
+    threads:
+        20
+    shell:
+        """
+        barrnap -o {output} <{input} {params.options} --threads {threads} &> {log}
+        """
+
+
+rule RGI:
+    input:
+        pilon_assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        flag=os.path.join(current_directory, "flags/rgi.done")
+    output:
+        txt=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.txt"),
+        json=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.json"),
+        tsv=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.tsv"),
+    params:
+        prefix=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi"),
+        options=lambda wildcards:config["parameters"]["RGI"],
+	rgi_dir=os.path.join(tools_dir, "rgi"),
+	cd=current_directory
+    log:
+        os.path.join(data_dir,"{sample}/logs/rgi.log")
+    threads:
+        30
+    conda:
+        "envs/probiopred.yaml"
+    shell:
+        """
+	cd {params.rgi_dir}
+        rgi main -i {input.pilon_assembly} -o {params.prefix} {params.options} -n {threads} &> {log}
+        sed 's/\t\t/\tn\/a\t/g' {output.txt} > {output.tsv}
+       
+        sed -i 's/#/;/g' {output.tsv}
+	cd {params.cd}
+
+        """
+
+    
+rule Phigaro:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        flag=os.path.join(current_directory, "flags/phigaro.done"),
+    output:
+        touch(
+            os.path.join(data_dir, "{sample}/13_phigaro/rule.done")
+        ),
+        os.path.join(data_dir, "{sample}/13_phigaro/{sample}_final.phigaro.tsv")
+    conda:
+        "envs/phigaro.yaml"
+    params:
+        outdir=os.path.join(data_dir, "{sample}/13_phigaro/"),
+        options=lambda wildcards:config["parameters"]["Phigaro"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/phigaro.log")
+    threads:
+        20
+    shell:
+        """
+               
+        phigaro -o {params.outdir} -f {input.assembly} {params.options} -e tsv html --not-open -t {threads} &> {log}
+	"""
+
+rule EzAAI:
+    input:
+        pilon_assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        reference=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/05_ezaai/{sample}_aai.tsv"),
+
+    params:
+        directory=directory(os.path.join(data_dir, "{sample}/05_ezaai/")),
+        temp_directory=directory(os.path.join(data_dir,"{sample}/05_ezaai/tmp/")),
+        sample_name="{sample}" ,
+        output_file_name=os.path.join(data_dir, "{sample}/05_ezaai/{sample}_aai"),
+    log:
+        os.path.join(data_dir,"{sample}/logs/ezaai.log")
+    threads:
+        20
+    conda:
+        "envs/phigaro.yaml"
+    shell:
+        """
+        mkdir -p {params.temp_directory}
+        
+        ezaai extract -i {input.pilon_assembly} -o {params.temp_directory}{params.sample_name}_ezaai.db &> {log}
+        ezaai extract -i {input.reference} -o {params.temp_directory}ref_ezaai.db &> {log}
+        ezaai calculate -i {params.temp_directory}/{params.sample_name}_ezaai.db -j {params.temp_directory}/ref_ezaai.db -o {params.output_file_name} &> {log}
+        mv {params.output_file_name} {output}
+        rm -r {params.temp_directory}
+        """
+      
+
+
+
+rule mobileOG_db:
+    input:
+        flag=os.path.join(current_directory, "flags/mobileogdb.done"),
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    output:
+        alignment_out_csv=os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
+        summary_csv=os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.summary.csv"),
+        tsv=os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.tsv"),
+    params:
+        options=lambda wildcards:config["parameters"]["mobileog"]["options"],
+        mobileog_dmnd=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileog_db.dmnd"),
+        mobileog_csv=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileog_db.csv"),
+        shellscript=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
+        outdir=os.path.join(data_dir,"{sample}/15_mobileog/"),
+        premoved_alignment_out_csv=os.path.join(data_dir,"{sample}/08_pilon/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
+        premoved_summary_csv=os.path.join(data_dir,"{sample}/08_pilon/{sample}_final.fasta.summary.csv"),
+        premoved_tsv=os.path.join(data_dir,"{sample}/08_pilon/{sample}_final.fasta.tsv"),
+        cd=current_directory
+    threads:
+        20
+    conda:
+        "envs/mobileOg.yaml"
+    log:
+        os.path.join(data_dir,"{sample}/logs/mobileog.log")
+    shell:
+        """
+        if [ ! -d "{params.outdir}" ]; then 
+        mkdir {params.outdir}
+        fi
+        cd tools/mobileOg/mobileOG-db-main/mobileOG-pl
+        bash {params.shellscript} -i {input.assembly} -d {params.mobileog_dmnd} -m {params.mobileog_csv} {params.options} &> {log}
+        cd {params.cd}
+        mv {params.premoved_alignment_out_csv} {output.alignment_out_csv}
+        mv {params.premoved_summary_csv} {output.summary_csv}
+        mv {params.premoved_tsv} {output.tsv}
+        """
+
+
+
+
+
+rule pocp:
+    input:
+        genomes=os.path.join(data_dir,"{sample}/00_trimmed_reads/modified_reference.fasta"),
+        #genomes=lambda wildcards:config["samples"][wildcards.sample]["reference_fasta"],
+        genome=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/05_pocp/pocp-matrix.tsv"),
+    params:
+        pipeline="hoelzer/pocp",
+        revision="2.3.0",
+        profile=["local", "conda"],
+        output=os.path.join(data_dir,"{sample}/05_pocp"),
+        nextflow_version="24.04.4",
+    log:
+        os.path.join(data_dir,"{sample}/logs/pocp.log")
+    threads:
+        30
+    conda:
+        "envs/pocp.yaml"
+    shell:
+        """
+        nextflow run hoelzer/pocp -r 2.3.0 --genomes {input.genomes} --genome {input.genome} -profile local,conda 2> {log} 
+        mv results/* {params.output}
+        rm -rf results/
+        """
+       
+
+
+
+rule GenoVI:
+    input:
+        bakta=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gbff"),
+        pilon=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+    output:
+        touch(
+            os.path.join(data_dir, "{sample}/18_genovi/rule.done")
+        ),
+        png=os.path.join(data_dir, "{sample}/18_genovi/genovi.png"),
+        #svg=os.path.join(data_dir, "{sample}/18_genovi/genovi.svg"),
+    params:
+        outdir=os.path.join(data_dir, "{sample}/18_genovi"),
+        COGs=lambda wildcards:config["parameters"]["genovi"]["COGs"],
+        options=lambda wildcards:config["parameters"]["genovi"]["options"],
+        sample_name = lambda wildcards: wildcards.sample
+    log:
+        os.path.join(data_dir,"{sample}/logs/genovi.log"),
+    threads:
+        30
+    conda:
+        "envs/genovi.yaml"
+    shell:
+        """
+
+        contig_count=$(grep -c '^>' {input.pilon})
+        if [ "$contig_count" -le 250 ]; then
+        genovi -i {input.bakta} -o genovi -s draft --title {params.sample_name} --cogs {params.COGs} {params.options} &> {log}
+        mv genovi/* {params.outdir}
+        else
+        touch {params.outdir}/{output} && \    # Create empty placeholders to prevent errors 
+        echo "Skipping GenoVI for {params.sample_name} due to too many contigs ($contig_count)." &> {log} 
+        fi
+
+
+        """
+
+rule mlst_folder:
+    input:
+
+    output:
+        touch(temp(os.path.join(data_dir, "{sample}/14_mlst/directory.made")))
+
+    params:
+        os.path.join(data_dir, "{sample}/14_mlst/"),
+    threads:
+        1
+    shell:
+        """
+        if [ ! -d {params} ]; then    
+            mkdir -p {params}
+        fi
+        """
+
+
+
+rule mlst:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        flag=os.path.join(data_dir, "{sample}/14_mlst/directory.made"),
+    output:
+        mlst=os.path.join(data_dir, "{sample}/14_mlst/{sample}_mlst.csv"),
+    params:
+        extra="--minscore 90"
+    log:
+        os.path.join(data_dir,"{sample}/logs/{sample}_mlst.log"),
+    threads:
+        40
+    wrapper:
+        "v3.8.0/bio/mlst"
+
+
+rule CRISPRcasIdentifier:
+    input:
+        assembly=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        flag=os.path.join(current_directory, "flags/crispr.done"),  
+    output:
+        os.path.join(data_dir,"{sample}/16_crispr/{sample}_crispr_prediction.csv"),
+    params:
+        cd=current_directory,
+        tools_dir=tools_dir,
+        options=lambda wildcards:config["parameters"]["crispr"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/{sample}_crispr.log"),
+    threads:
+        20
+    conda:
+        "envs/crispr.yaml"
+    shell:
+        """
+        cd {params.tools_dir}
+        cd crispr/CRISPRcasIdentifier-1.1.0
+        python CRISPRcasIdentifier.py -f {input.assembly} {params.options} -o {output} &> {log}
+        cd {params.cd}
+        """
+
+
+rule Panvita:
+    input:
+        flag=os.path.join(current_directory, "flags/panvita.done"),
+        annotated_file=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gbff"),
+    output:
+        vfdb=directory(os.path.join(data_dir,"{sample}/17_panvita/Results_vfdb")),        
+    params:
+        outdir_path=os.path.join(data_dir,"{sample}/17_panvita/"),
+        cd=current_directory,
+        panvita_path=os.path.join(tools_dir,"panvita/panvita.py")
+    log:
+        os.path.join(data_dir,"{sample}/logs/{sample}_panvita.log"),
+    threads:
+        10
+    conda:
+        "envs/panvita.yaml"
+    shell:
+        """
+        mkdir -p {params.outdir_path}
+        cd {params.outdir_path}
+        python3 {params.panvita_path} -vfdb {input.annotated_file} &> {log}
+        mv Results_vfdb* Results_vfdb
+        sed -i 's/;/,/g' Results_vfdb/vfdb_mechanisms.csv
+        sed -i 's/;/,/g' Results_vfdb/matriz_vfdb.csv
+        cd {params.cd}
+        """
+
+
+rule Antismash:
+    input:
+        bakta_gbff=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.gbff"),
+        flag=os.path.join(current_directory, "flags/antismash_db.done")
+    output:
+        os.path.join(data_dir, "{sample}/19_antismash/index.html"),
+    params:
+        outdir=os.path.join(data_dir,"{sample}/19_antismash"),
+        sample_name="{sample}"
+    log:
+        os.path.join(data_dir,"{sample}/logs/antismash.log")
+    threads:
+        30
+    conda:
+        "envs/antismash.yaml"
+    shell:
+        """
+        antismash -t bacteria --output-dir {params.outdir} --output-basename {params.sample_name} --genefinding-tool none {input.bakta_gbff} --fullhmmer --clusterhmmer --tigrfam --asf --cc-mibig --cb-general --cb-subclusters --cb-knownclusters --pfam2go --rre --smcog-trees --tfbs
+        """
+
+rule create_absolute_paths:
+    input:
+        fastqc_dir_pretrim=os.path.join(data_dir, "{sample}/01_fastqc"),
+        fastqc_directory=os.path.join(data_dir, "{sample}/00_trimmed_reads/Fastqc"),
+        unicycler_dir=os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),   
+        post_assembly_checkm_table=os.path.join(data_dir,"{sample}/03_checkm/post_assembly/table.txt"),
+        post_polish_checkm_table=os.path.join(data_dir,"{sample}/03_checkm/post_polish/table.txt"),
+        post_assembly_quast_tsv=os.path.join(data_dir, "{sample}/03_quast/post_assembly/report.tsv"),
+        post_polish_quast_tsv=os.path.join(data_dir, "{sample}/03_quast/post_polish/report.tsv"),
+        fastANI_post_assembly=os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_assembly.txt"),
+        fastANI_post_polish=os.path.join(data_dir,"{sample}/04_fastANI/04_fastANI_post_polish.txt"),
+        aai_tsv=os.path.join(data_dir, "{sample}/05_ezaai/{sample}_aai.tsv"),
+        pocp_tsv=os.path.join(data_dir, "{sample}/05_pocp/pocp-matrix.tsv"),
+        ragtag_output=os.path.join(data_dir, "{sample}/06_ragtag/ragtag.scaffold.fasta"),
+        pilon_output=os.path.join(data_dir, "{sample}/08_pilon/{sample}_final.fasta"),
+        prodigal_genes=os.path.join(data_dir,"{sample}/09_prodigal/{sample}.tsv"),
+        bakta_tsv=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.tsv"),
+        bakta_png=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.png"),
+        bakta_summary=os.path.join(data_dir, "{sample}/10_bakta/{sample}_bakta.txt"),
+        barrnap_file=os.path.join(data_dir, "{sample}/11_barrnap/{sample}_rrna.fa"),
+        rgi_tsv=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.tsv"),
+        rgi_json=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi.json"),
+        phigaro_tsv=os.path.join(data_dir, "{sample}/13_phigaro/{sample}_final.phigaro.tsv"),
+        mobileog_summary=os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.summary.csv"),
+        mobileog_detailed=os.path.join(data_dir,"{sample}/15_mobileog/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
+        crispr_result=os.path.join(data_dir,"{sample}/16_crispr/{sample}_crispr_prediction.csv"),
+        genovi_png=os.path.join(data_dir,"{sample}/18_genovi/genovi.png"),
+        antismash=os.path.join(data_dir, "{sample}/19_antismash/index.html"),
+    output:
+        os.path.join(data_dir, "{sample}/20_report/{sample}_absolute_paths.txt")
+    params:
+        post_assembly_quast_dir=os.path.join(data_dir, "{sample}/03_quast/post_assembly"),
+        post_polish_quast_dir=os.path.join(data_dir, "{sample}/03_quast/post_polish"),
+        post_assembly_checkm_dir=os.path.join(data_dir,"{sample}/03_checkm/post_assembly"),
+        post_polish_checkm_dir=os.path.join(data_dir,"{sample}/03_checkm/post_polish"),
+        phigaro_html=os.path.join(data_dir, "{sample}/13_phigaro/{sample}_final.phigaro.html"),
+        mlst_dir=os.path.join(data_dir, "{sample}/14_mlst/{sample}_mlst.csv"),
+        crispr_dir=os.path.join(data_dir,"{sample}/16_crispr/"),
+        vfdb_dir=os.path.join(data_dir,"{sample}/17_panvita/Results_vfdb/vfdb_mechanisms.csv"),
+        panvita_dir=os.path.join(data_dir,"{sample}/17_panvita/Results_vfdb/matriz_vfdb.csv"),
+        genovi_dir=os.path.join(data_dir,"{sample}/18_genovi"),
+        outdir=data_dir,
+        cd=current_directory,
+        sample_dir=os.path.join(data_dir, "{sample}"),
+        sample_name="{sample}",
+    shell:
+        """
+        for file in {input}; do
+            echo "$file" >> {output}
+        done
+        for file in {params}; do
+            echo "$file" >> {output}
+        done
+        cp {output} {params.cd}/quarto_scripts
+        """
+
+rule Quarto_report:
+    input:
+        absolute_paths=os.path.join(data_dir, "{sample}/20_report/{sample}_absolute_paths.txt")
+    output:
+        html_report=os.path.join(data_dir,"{sample}/20_report/{sample}_report.html"),
+    params:
+        output_dir=os.path.join(data_dir,"{sample}/20_report"),
+        sample="{sample}",
+        cd=current_directory
+    log:
+        os.path.join(data_dir,"{sample}/logs/quarto_report.log")
+    threads:
+        30
+    shell:
+        """
+        cp -r quarto_scripts/ {params.output_dir}
+        cd {params.output_dir}/quarto_scripts/
+        cp {input.absolute_paths} ./
+        mv {params.sample}_absolute_paths.txt absolute_paths.txt
+        quarto render
+        cp -r report_files/* {params.output_dir}
+        rm -rf report_files/*
+        cd {params.output_dir}
+        cp index.html {params.sample}_report.html
+        rm -rf quarto_scripts/
+        cd {params.cd}
+        """
+
+
+

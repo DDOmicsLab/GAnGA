@@ -1,0 +1,15 @@
+name: panvita
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python>3
+  - git
+  - pip:
+    - wget
+    - seaborn
+    - pandas
+    - matplotlib
+    - basemap
+    - scipy

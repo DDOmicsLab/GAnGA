@@ -1,0 +1,48 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2", "fastqcr","textshaping", "devtools", "png", "grid","gridExtra")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+file_path <- "absolute_paths.txt"
+
+paths <- readLines(file_path)
+outdir <- paths[38] 
+sample_dir <- paths[40]
+sample_name <- paths[41]
+cd <- paths[39]
+```
+
+The current working directory is:
+
+```{r cd, echo=FALSE}
+knitr::asis_output(paste0("**", cd, "**"))
+```
+
+The specified outdir is:
+
+```{r outdir, echo=FALSE}
+knitr::asis_output(paste0("**", outdir, "**"))
+```
+
+All the results for this genome are stored in the sample_dir:
+
+```{r sample_dir, echo=FALSE}
+knitr::asis_output(paste0("**", sample_dir, "**"))
+```

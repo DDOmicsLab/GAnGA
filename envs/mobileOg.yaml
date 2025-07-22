@@ -1,0 +1,12 @@
+name: mobileOg.yaml
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - biopython
+  - python==3.6.15
+  - prodigal
+  - diamond
+  - pip:
+      - pandas

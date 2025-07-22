@@ -1,0 +1,9 @@
+name: phigaro_env
+dependencies:
+  - python<=3.12.1
+  - pip
+  - bioconda::prodigal
+  - bioconda::hmmer
+  - bioconda::ezaai
+  - pip:
+    - phigaro

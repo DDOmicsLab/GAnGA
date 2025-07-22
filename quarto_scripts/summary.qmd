@@ -1,0 +1,219 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2", "fastqcr","textshaping", "devtools", "png", "grid","gridExtra")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+file_path <- "absolute_paths.txt"
+
+paths <- readLines(file_path)
+outdir <- paths[37] 
+sample_dir <- paths[39]
+sample_name <- paths[40]
+cd <- paths[38]
+pretrim_qc.dir <- paths[1]
+qc.dir <- paths[2]
+quast_pre <- paths[6]
+quast_post <- paths[7]
+checkm_pre <- paths[4]
+checkm_post <- paths[5]
+bakta_txt <- paths[17]
+```
+
+The current working directory is:
+
+```{r cd, echo=FALSE}
+knitr::asis_output(paste0("**", cd, "**"))
+```
+
+The specified output directory is:
+
+```{r outdir, echo=FALSE}
+knitr::asis_output(paste0("**", outdir, "**"))
+```
+
+All the results for this genome are stored in:
+
+```{r sample_dir, echo=FALSE}
+knitr::asis_output(paste0("**", sample_dir, "**"))
+```
+
+Statistics of forward raw reads:
+
+```{r pretrim_stats_for, echo=FALSE, message=FALSE, warning=FALSE}
+subdirs <- list.dirs(pretrim_qc.dir, full.names = TRUE, recursive = FALSE)
+fastqc_path <- file.path(subdirs[grepl("_1_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_lines <- readLines(fastqc_path)
+cat(fastqc_lines[7], "\n")
+cat(fastqc_lines[8], "\n")
+
+summary_path <- file.path(subdirs[grepl("_1_fastqc$", subdirs)], "summary.txt")
+summary_lines <- readLines(summary_path)
+
+# Function to swap the first two columns
+swap_cols <- function(line) {
+  cols <- strsplit(line, "\t")[[1]]
+  paste(cols[2], cols[1], sep = "\t")
+}
+
+# Extract and print swapped lines 1 and 10
+cat(swap_cols(summary_lines[1]), "\n")
+cat(swap_cols(summary_lines[10]), "\n")
+```
+
+Statistics of reverse raw reads:
+
+```{r pretrim_stats_rev, echo=FALSE, message=FALSE, warning=FALSE}
+subdirs <- list.dirs(pretrim_qc.dir, full.names = TRUE, recursive = FALSE)
+fastqc_path <- file.path(subdirs[grepl("_2_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_lines <- readLines(fastqc_path)
+cat(fastqc_lines[7], "\n")
+cat(fastqc_lines[8], "\n")
+
+summary_path <- file.path(subdirs[grepl("_2_fastqc$", subdirs)], "summary.txt")
+summary_lines <- readLines(summary_path)
+
+# Function to swap the first two columns
+swap_cols <- function(line) {
+  cols <- strsplit(line, "\t")[[1]]
+  paste(cols[2], cols[1], sep = "\t")
+}
+
+# Extract and print swapped lines 1 and 10
+cat(swap_cols(summary_lines[1]), "\n")
+cat(swap_cols(summary_lines[10]), "\n")
+```
+
+Statistics of forward trimmed reads:
+
+```{r posttrim_stats_for, echo=FALSE, message=FALSE, warning=FALSE}
+subdirs <- list.dirs(qc.dir, full.names = TRUE, recursive = TRUE)
+fastqc_path <- file.path(subdirs[grepl("unzipped_forward/forward_paired_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_lines <- readLines(fastqc_path)
+cat(fastqc_lines[7], "\n")
+cat(fastqc_lines[8], "\n")
+
+summary_path <- file.path(subdirs[grepl("unzipped_forward/forward_paired_fastqc$", subdirs)], "summary.txt")
+summary_lines <- readLines(summary_path)
+
+# Function to swap the first two columns
+swap_cols <- function(line) {
+  cols <- strsplit(line, "\t")[[1]]
+  paste(cols[2], cols[1], sep = "\t")
+}
+
+# Extract and print swapped lines 1 and 10
+cat(swap_cols(summary_lines[1]), "\n")
+cat(swap_cols(summary_lines[10]), "\n")
+```
+
+Statistics of reverse trimmed reads:
+
+```{r posttrim_stats_rev, echo=FALSE, message=FALSE, warning=FALSE}
+subdirs <- list.dirs(qc.dir, full.names = TRUE, recursive = TRUE)
+fastqc_path <- file.path(subdirs[grepl("unzipped_reverse/reverse_paired_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_lines <- readLines(fastqc_path)
+cat(fastqc_lines[7], "\n")
+cat(fastqc_lines[8], "\n")
+
+summary_path <- file.path(subdirs[grepl("unzipped_reverse/reverse_paired_fastqc$", subdirs)], "summary.txt")
+summary_lines <- readLines(summary_path)
+
+# Function to swap the first two columns
+swap_cols <- function(line) {
+  cols <- strsplit(line, "\t")[[1]]
+  paste(cols[2], cols[1], sep = "\t")
+}
+
+# Extract and print swapped lines 1 and 10
+cat(swap_cols(summary_lines[1]), "\n")
+cat(swap_cols(summary_lines[10]), "\n")
+```
+
+Assembly statistics:
+
+```{r ass_stats, echo=FALSE, message=FALSE, warning=FALSE}
+ass_lines_pre <- readLines(quast_pre) 
+cat(ass_lines_pre[14], "\n")
+cat(ass_lines_pre[15], "\n")
+cat(ass_lines_pre[16], "\n")
+cat(ass_lines_pre[18], "\n")
+cat(ass_lines_pre[20], "\n")
+
+check_lines_pre <- readLines(checkm_pre)
+
+# Get header and data lines
+header_line <- check_lines_pre[16]
+data_line <- check_lines_pre[18]
+
+# Split lines by whitespace (multiple spaces)
+header_cols <- strsplit(header_line, "\\s{2,}")[[1]]
+data_cols <- strsplit(data_line, "\\s{2,}")[[1]]
+
+# Find indices
+idx_compl <- which(header_cols == "Completeness")
+idx_conta <- which(header_cols == "Contamination")
+
+# Extract values
+compl_value <- data_cols[idx_compl]
+conta_value <- data_cols[idx_conta]
+
+# Print transposed
+cat(paste0("Completeness\t", compl_value, "\nContamination\t", conta_value, "\n"))
+
+```
+
+Assembly statistics post polishing:
+
+```{r draft_stats, echo=FALSE, message=FALSE, warning=FALSE}
+ass_lines_post <- readLines(quast_post) 
+cat(ass_lines_post[14], "\n")
+cat(ass_lines_post[15], "\n")
+cat(ass_lines_post[16], "\n")
+cat(ass_lines_post[18], "\n")
+cat(ass_lines_post[20], "\n")
+
+check_lines_post <- readLines(checkm_post)
+
+# Get header and data lines
+header_line <- check_lines_post[16]
+data_line <- check_lines_post[18]
+
+# Split lines by whitespace (multiple spaces)
+header_cols <- strsplit(header_line, "\\s{2,}")[[1]]
+data_cols <- strsplit(data_line, "\\s{2,}")[[1]]
+
+# Find indices
+idx_compl <- which(header_cols == "Completeness")
+idx_conta <- which(header_cols == "Contamination")
+
+# Extract values
+compl_value <- data_cols[idx_compl]
+conta_value <- data_cols[idx_conta]
+
+# Print transposed
+cat(paste0("Completeness\t", compl_value, "\nContamination\t", conta_value, "\n"))
+```
+
+Annotation statistics:
+
+```{r annotation_stats, echo=FALSE}
+file_content <- readLines(bakta_txt)
+cat(file_content[10:24], sep = "\n")
+```

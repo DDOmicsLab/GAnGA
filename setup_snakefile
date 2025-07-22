@@ -1,0 +1,434 @@
+current_directory = os.getcwd()
+db_dir = os.path.join(current_directory,"databases")
+tools_dir = os.path.join(current_directory,"tools")
+
+rule all:
+    input: 
+                os.path.join(current_directory, "flags/checkm.done"),
+                os.path.join(current_directory, "flags/bakta_db.done"),
+                os.path.join(current_directory, "flags/rgi.done"),
+                os.path.join(current_directory, "flags/phigaro.done"),
+                os.path.join(current_directory, "flags/mobileogdb.done"),
+                os.path.join(current_directory, "flags/crispr.done"),
+                os.path.join(current_directory, "flags/panvita.done"),
+                os.path.join(current_directory, "flags/antismash_db.done"),
+                os.path.join(current_directory, "flags/pocp.done"),
+                os.path.join(current_directory, "flags/minimap2.done"),
+                os.path.join(current_directory, "flags/r_packages.done"),
+
+                expand("flags/{name}.done",
+                    name=["chopper", "ezaai", "fastani", "flye", "genovi", "quarto", "racon", "ragtag", "trimmomatic", "unicycler", "mlst_wrapper"]),
+
+rule chopper_env:
+    output: touch("flags/chopper.done")
+    conda:  "envs/chopper.yaml"
+    shell:  "touch {output}"
+
+rule ezaai_env:
+    output: touch("flags/ezaai.done")
+    conda:  "envs/ezaai.yaml"
+    shell:  "touch {output}"
+
+rule fastani_env:
+    output: touch("flags/fastani.done")
+    conda:  "envs/fastani.yaml"
+    shell:  "touch {output}"
+
+rule flye_env:
+    output: touch("flags/flye.done")
+    conda:  "envs/flye.yaml"
+    shell:  "touch {output}"
+
+rule genovi_env:
+    output: touch("flags/genovi.done")
+    conda:  "envs/genovi.yaml"
+    shell:  "touch {output}"
+
+rule quarto_env:
+    output: touch("flags/quarto.done")
+    conda:  "envs/quarto.yaml"
+    shell:  "touch {output}"
+
+rule racon_env:
+    output: touch("flags/racon.done")
+    conda:  "envs/racon.yaml"
+    shell:  "touch {output}"
+
+rule ragtag_env:
+    output: touch("flags/ragtag.done")
+    conda:  "envs/ragtag.yaml"
+    shell:  "touch {output}"
+
+rule trimmomatic_env:
+    output: touch("flags/trimmomatic.done")
+    conda:  "envs/trimmomatic.yaml"
+    shell:  "touch {output}"
+
+rule unicycler_env:
+    output: touch("flags/unicycler.done")
+    conda:  "envs/unicycler.yaml"
+    shell:  "touch {output}"
+
+rule mlst_wrapper_env:
+    output: touch("flags/mlst_wrapper.done")
+    conda:  "https://github.com/snakemake/snakemake-wrappers/raw/v3.8.0/bio/mlst/environment.yaml"
+    shell:  "touch {output}"
+
+rule CheckM_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/checkm.done")
+    params:
+        cd=current_directory,
+        db_dir=os.path.join(current_directory, "databases"),
+        checkm_dir=os.path.join(current_directory, "databases/checkm")
+    conda:
+        "envs/checkm.yaml"
+    shell:
+        """
+        echo " Downloading CheckM database..."
+
+        mkdir -p {params.db_dir}
+
+        if [ ! -d "{params.checkm_dir}/checkm_data_2015_01_16" ]; then
+            mkdir -p {params.checkm_dir}
+            cd {params.checkm_dir}
+            wget https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
+            tar -xvzf checkm_data_2015_01_16.tar.gz
+            cd {params.cd}
+        else
+            echo "✅ CheckM database already exists."
+        fi
+
+        echo -n > {output}
+        """
+
+
+rule Bakta_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/bakta_db.done")
+    params:
+        db_dir=os.path.join(current_directory, "databases"),
+        cd=current_directory,
+        db_path=os.path.join(current_directory, "databases/bakta_db/")
+    conda:
+        "envs/bakta.yaml"
+    shell:
+        """
+        echo "Downloading Bakta database..."
+
+        bakta_db_dir="{params.db_path}"
+
+        required_files=(
+            "$bakta_db_dir/db/bakta.db"
+            "$bakta_db_dir/db/antifam.h3f"
+            "$bakta_db_dir/db/pfam.h3i"
+            "$bakta_db_dir/db/version.json"
+        )
+
+        all_files_exist=true
+        for file in "${{required_files[@]}}"; do
+            if [ ! -f "$file" ]; then
+                all_files_exist=false
+                break
+            fi
+        done
+
+        if [ "$all_files_exist" = false ]; then
+            echo "Bakta DB not found or incomplete. Proceeding with download..."
+            rm -rf "$bakta_db_dir"
+            mkdir -p {params.db_dir}
+            bakta_db download --output "$bakta_db_dir" --type full
+        else
+            echo "✅ Bakta DB already exists and is complete."
+        fi
+
+        echo -n > {output}
+        true
+        """
+
+rule RGI_setup:
+    input:
+
+    output:
+        (os.path.join(current_directory, "flags/rgi.done"))
+    conda:
+        "envs/probiopred.yaml"
+    params:
+        tools_dir=os.path.join(current_directory, "tools"),
+        cd=current_directory
+    threads:
+        20
+    shell:
+        """
+	cd {params.tools_dir}
+        if [ ! -d "rgi" ]; then
+            git clone https://github.com/arpcard/rgi.git
+
+        fi
+        cd rgi
+        pip3 install .
+        rgi auto_load
+        cd {params.tools_dir}
+
+        if [ ! -f "localDB/card.json" ]; then
+            wget https://card.mcmaster.ca/latest/data
+            tar -xvf data ./card.json
+            rgi load --card_json ./card.json --local
+        fi
+	cd {params.cd}
+        echo -n > {output}
+        """
+   
+
+
+rule Phigaro_setup:
+    input:
+        os.path.join(current_directory, "scripts/phigaro_setup_inputs.txt")
+    output:
+        os.path.join(current_directory, "flags/phigaro.done")
+    params:
+        cd=current_directory,
+        tools_dir=os.path.join(current_directory, "tools")
+    conda:
+        "envs/phigaro.yaml"
+    shell:
+        """
+        echo " Setting up Phigaro..."
+        mkdir -p {params.tools_dir}
+        cd {params.tools_dir}
+
+        if [ ! -d "$HOME/.phigaro/pvog" ] || [ ! -f "$HOME/.phigaro/pvog/allpvoghmms" ]; then
+            echo "⚙️  Setting up Phigaro..."
+            phigaro-setup --no-updatedb < {input}
+        else
+            echo "✅  Phigaro is already set up. Skipping."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule mobileOG_db_install:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/mobileogdb.done")
+    conda:
+        "envs/mobileOg.yaml"
+    params:
+        cd=current_directory,
+        mobileog_db_download_path= config["mobileog_db_download_path"],
+        shellscript=os.path.join(tools_dir, "mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
+        tools_dir=os.path.join(current_directory, "tools")
+    threads:
+        20
+    shell:
+        """
+	    cd {params.tools_dir}
+        if [ ! -d "mobileOg" ]; then
+            mkdir mobileOg
+            cd mobileOg/
+            wget https://github.com/clb21565/mobileOG-db/archive/refs/heads/main.zip
+            unzip main
+            cd mobileOG-db-main/
+            chmod +x {params.shellscript}
+            cp {params.mobileog_db_download_path} files.zip
+            unzip files.zip
+            mv *csv mobileog_db.csv
+            mv *faa mobileog_db.faa
+            diamond makedb --in mobileog_db.faa -d mobileog_db.dmnd
+
+
+
+            cd {params.cd}
+        fi
+        echo -n > {output}
+        """
+
+
+rule CRISPRcasIdentifier_setup:
+    input:
+
+    output:
+        flag=os.path.join(current_directory, "flags/crispr.done")
+    params:
+        cd=current_directory,
+        tools_dir=os.path.join(current_directory, "tools")
+    conda:
+        "envs/crispr.yaml"
+    threads:
+        20
+    shell:
+        """
+        echo " Setting up CRISPRcasIdentifier..."
+        mkdir -p {params.tools_dir}
+        cd {params.tools_dir}
+
+        if [ ! -d "crispr/CRISPRcasIdentifier-1.1.0" ]; then
+            echo "📦 Cloning and preparing CRISPRcasIdentifier..."
+            mkdir -p crispr
+            cd crispr
+            wget https://github.com/BackofenLab/CRISPRcasIdentifier/archive/v1.1.0.tar.gz
+            tar -xzf v1.1.0.tar.gz
+
+            echo "⬇️  Downloading model and HMM sets..."
+            gdown --fuzzy https://drive.google.com/file/d/1YbTxkn9KuJP2D7U1-6kL1Yimu_4RqSl1/view?usp=sharing
+            mv HMM_sets.tar.gz CRISPRcasIdentifier-1.1.0/HMM_sets.tar.gz
+
+            gdown --fuzzy https://drive.google.com/file/d/1Nc5o6QVB6QxMxpQjmLQcbwQwkRLk-thM/view?usp=sharing
+            mv trained_models.tar.gz CRISPRcasIdentifier-1.1.0/
+
+            echo "✅ CRISPRcasIdentifier setup complete."
+        else
+            echo "✅ CRISPRcasIdentifier already exists. Skipping setup."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule Panvita_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/panvita.done")
+    params:
+        cd=current_directory,
+        tools_dir=os.path.join(current_directory, "tools"),
+        panvita_dir=os.path.join(current_directory, "tools/panvita")
+    conda:
+        "envs/panvita.yaml"
+    shell:
+        """
+        echo " Setting up Panvita..."
+        mkdir -p {params.tools_dir}
+        cd {params.tools_dir}
+
+        if [ ! -d "{params.panvita_dir}" ]; then
+            echo "📦 Cloning Panvita into tools directory..."
+            git clone https://github.com/dlnrodrigues/panvita.git
+            echo "✅ Panvita clone complete."
+        else
+            echo "✅ Panvita already exists. Skipping clone."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+
+rule antismash_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/antismash_db.done")
+    params:
+        db_path=os.path.join(current_directory,"antismash-databases/")
+    conda:
+        "envs/antismash.yaml"
+    shell:
+        """
+        echo " Setting up antiSMASH databases..."
+        download-antismash-databases
+        echo "✅ antiSMASH database setup complete."
+        echo -n > {output}
+        """
+
+
+rule r_setup:
+    input:
+        script="scripts/install_packages.R"
+    output:
+        os.path.join(current_directory, "flags/r_packages.done")
+    shell:
+        """
+        echo " Checking and installing R packages..."
+
+        if [ -f {output} ]; then
+            echo "✅ R packages are already set up. Skipping installation."
+        else
+            echo "⬇️  Installing R packages using install_r_packages.R..."
+            Rscript {input.script}
+
+            if [ $? -eq 0 ]; then
+                echo "✅ R packages installed successfully."
+                touch {output}
+            else
+                echo "❌ Failed to install R packages."
+                exit 1
+            fi
+        fi
+
+        echo "[✔] R setup complete."
+        """
+
+
+rule POCP_setup:
+    output:
+        os.path.join(current_directory, "flags/pocp.done")
+    params:
+        tools_dir=os.path.join(current_directory, "tools"),
+        cd=current_directory
+    conda:
+        "envs/pocp.yaml"  
+    shell:
+        """
+        echo " Cloning POCP..."
+
+        mkdir -p {params.tools_dir}
+        cd {params.tools_dir}
+
+        if [ ! -d "pocp" ]; then
+            git clone https://github.com/hoelzer/pocp.git pocp
+        else
+            echo "✅ POCP already cloned. Skipping."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+rule Minimap2_setup:
+    output:
+        os.path.join(current_directory, "flags/minimap2.done")
+    params:
+        tools_dir=os.path.join(current_directory, "tools"),
+        cd=current_directory
+    shell:
+        """
+        echo " Setting up Minimap2..."
+
+        mkdir -p {params.tools_dir}
+        cd {params.tools_dir}
+
+        if [ ! -d "minimap2" ]; then
+            mkdir minimap2
+            cd minimap2
+
+            echo "Downloading Minimap2 v2.28..."
+            curl -LO https://github.com/lh3/minimap2/releases/download/v2.28/minimap2-2.28_x64-linux.tar.bz2
+
+            echo "Extracting Minimap2..."
+            tar -xvjf minimap2-2.28_x64-linux.tar.bz2
+
+            echo "Moving binary to tools directory..."
+            mv minimap2-2.28_x64-linux/minimap2 .
+
+            echo "Cleaning up..."
+            rm -rf minimap2-2.28_x64-linux*
+
+            cd ..
+        else
+            echo "✅ Minimap2 is already installed. Skipping."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """

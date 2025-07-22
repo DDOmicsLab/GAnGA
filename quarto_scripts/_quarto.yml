@@ -1,0 +1,52 @@
+project:
+  type: website
+  output-dir: report_files
+knitr:
+  opts_chunk: 
+    collapse: true
+    R.options:
+      knitr.graphics.auto_pdf: true
+website:
+  title: "Bacterial Genome Analysis Report"
+  navbar:
+    left:
+      - href: index.qmd
+        text: "Home"
+      - href: about.qmd
+        text: "About"
+      - href: references.qmd
+        text: "References"
+  sidebar:
+    style: "docked" 
+    collapse-level: 1
+    search: true
+    contents: 
+      - text: "Summary"
+        href: summary.qmd
+      - text: "QC"
+        href: qc.qmd
+        items:
+        - text: "FastQC Pretrim"
+          href: fastqc_pretrim.qmd
+        - text: "FastQC Posttrim"
+          href: fastqc_posttrim.qmd
+      - text: "Assembly & Scaffolding" 
+        href: assembly.qmd
+      - text: "Taxonomy"
+        href: taxonomy.qmd
+      - text: "Annotation"
+        href: annotation.qmd
+      - text: "Visualization"
+        href: visualization.qmd 
+format:
+  html:
+    theme: cosmo 
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    css: "styles.css"  # Link to the custom CSS
+
+execute:
+  freeze: auto   
+
+

@@ -1,0 +1,15 @@
+name: r_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - r-base=4.3
+  - r-devtools
+  - r-remotes
+  - libxml2
+  - libcurl
+  - openssl
+  - pandoc
+  - texlive-core

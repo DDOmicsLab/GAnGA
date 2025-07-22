@@ -1,0 +1,8 @@
+name: racon
+channels:
+  - r
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - racon=1.3.1

@@ -1,0 +1,7 @@
+name: fastANI
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - fastani==1.32 

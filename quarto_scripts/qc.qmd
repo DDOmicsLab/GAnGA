@@ -1,0 +1,380 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2", "fastqcr","textshaping", "devtools", "png", "grid","gridExtra")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+file_path <- "absolute_paths.txt"
+
+paths <- readLines(file_path)
+outdir <- paths[37] 
+sample_dir <- paths[39]
+post_assembly_quast_dir <- paths[27]
+post_polish_quast_dir <- paths[28]
+post_assembly_checkm_dir <- paths[29]
+post_polish_checkm_dir <- paths[30]
+pretrim_qc.dir <- paths[1]
+sample_name <- paths[40]
+cd <- paths[38]
+```
+
+## Quality Check
+
+::: panel-tabset
+### Raw reads QC
+
+This is the quality check of raw reads done using [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).
+
+FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines. It provides a modular set of analyses which you can use to give a quick impression of whether your data has any problems of which you should be aware before doing any further analysis.
+
+After quality check with FastQC, raw reads were trimmed based on their quality and length using [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic). The default criteria for trimming was `SLIDINGWINDOW:4:15`and `MINLEN:36`. The option `SLIDINGWINDOW:4:15` means that the read was scanned with a sliding window of size 4 bases. If the average quality within the window dropped below 15, the read was trimmed from that point onwards. `MINLEN:36` ensures that only reads longer than or equal to 36 bases are kept after trimming. Reads shorter than 36 bases are discarded.
+
+Trimmed reads were again subjected to quality check using FastQC.
+
+Pretrim FastQC output files are stored in `01_fastqc` directory in the specified `outdir`. Posttrim FastQC output files are stored in `00_trimmed_reads/Fastqc` directory in the specified `outdir`.
+
+The current working directory is:
+
+```{r cd, echo=FALSE}
+knitr::asis_output(paste0("**", cd, "**"))
+```
+
+The specified outdir is:
+
+```{r outdir, echo=FALSE}
+knitr::asis_output(paste0("**", outdir, "**"))
+```
+
+All the results for this genome are stored in the sample_dir:
+
+```{r sample_dir, echo=FALSE}
+knitr::asis_output(paste0("**", sample_dir, "**"))
+```
+
+Following is the command used for performing FastQC analysis on the raw reads reads:
+
+``` bash
+fastqc -o {sample_dir/01_fastqc} --noextract -f fastq {raw_reads_1.fastq.gz} {raw_reads_1.fastq.gz} -t 20 &> {sample_dir/logs/fastqc.log}
+```
+
+Following is the command used for performing FastQC analysis on the trimmed reads:
+
+``` bash
+fastqc -o {sample_dir/00_trimmed_reads/Fastqc} --noextract -f fastq {sample_dir/00_trimmed_reads/forward_paired.fastq.gz} {sample_dir/00_trimmed_reads/reverse_paired.fastq.gz} -t 20 &> {sample_dir/logs/fastqc_posttrim.log}
+```
+
+Summary statistics of forward_paired reads
+
+```{r fastqc_pretrim, echo=FALSE, message=FALSE, warning=FALSE, }
+fastqc_zip_files_pretrim <- list.files(pretrim_qc.dir, full.names = TRUE, pattern = "\\.zip$")
+unzipped_dir_forward <- sub("\\.zip$", "", basename(fastqc_zip_files_pretrim[1]))  # Extract folder name based on the file name
+unzip(fastqc_zip_files_pretrim[1], exdir = file.path(pretrim_qc.dir))
+qc_data_forward_pretrim <- (file.path(pretrim_qc.dir, unzipped_dir_forward))
+summary_txt <- (file.path(qc_data_forward_pretrim, "summary.txt"))
+fastqc_content_pretrim <- readLines(summary_txt)
+fastqc_df_forward_pretrim <- read.table(text = fastqc_content_pretrim, sep = "\t", header = FALSE, fill = TRUE)
+colnames(fastqc_df_forward_pretrim) = c("Status", "Module", "File")
+fastqc_df_forward_pretrim <- fastqc_df_forward_pretrim %>% select(-`File`)
+
+unzip(fastqc_zip_files_pretrim[2], exdir = file.path(pretrim_qc.dir))
+unzipped_dir_reverse <- sub("\\.zip$", "", basename(fastqc_zip_files_pretrim[2]))  # Extract folder name based on the file name
+qc_data_reverse_pretrim <- (file.path(pretrim_qc.dir, unzipped_dir_reverse)) 
+summary_txt <- (file.path(qc_data_reverse_pretrim, "summary.txt"))
+fastqc_content_pretrim <- readLines(summary_txt)
+fastqc_df_reverse_pretrim <- read.table(text = fastqc_content_pretrim, sep = "\t", header = FALSE, fill = TRUE)
+colnames(fastqc_df_reverse_pretrim) = c("Status", "Module", "File")
+fastqc_df_reverse_pretrim <- fastqc_df_reverse_pretrim %>% select(-`File`)
+
+
+combined_df <- full_join(fastqc_df_forward_pretrim, fastqc_df_reverse_pretrim, by = "Module", suffix = c("_forward_paired", "_reverse_paired"))
+combined_df <- combined_df %>% select(Module, Status_forward_paired, Status_reverse_paired)
+
+kable(combined_df, results="asis", align = "c", caption = "Summary statistics of forward_paired and reverse_paired reads before trimming") %>%
+    kable_paper() %>%
+    scroll_box(width = "800px", height = "500px")
+```
+
+Table 1: Summary statistics of forward_paired and reverse_paired reads before trimming
+
+```{r fastqc_posttrim, echo=FALSE, message=FALSE, warning=FALSE}
+paths <- readLines(file_path)
+qc.dir <- paths[2]
+fastqc_zip_files <- list.files(qc.dir, full.names = TRUE, pattern = "\\.zip$")
+unzip(fastqc_zip_files[1], exdir = file.path(qc.dir, "unzipped_forward"))
+qc_data_forward <- (file.path(qc.dir, "unzipped_forward", "forward_paired_fastqc")) 
+summary_txt <- (file.path(qc_data_forward, "summary.txt"))
+fastqc_content <- readLines(summary_txt)
+fastqc_df_forward <- read.table(text = fastqc_content, sep = "\t", header = FALSE, fill = TRUE)
+colnames(fastqc_df_forward) = c("Status", "Module", "File")
+fastqc_df_forward <- fastqc_df_forward %>% select(-`File`)
+
+unzip(fastqc_zip_files[2], exdir = file.path(qc.dir, "unzipped_reverse"))
+qc_data_reverse <- (file.path(qc.dir, "unzipped_reverse", "reverse_paired_fastqc")) 
+summary_txt <- (file.path(qc_data_reverse, "summary.txt"))
+fastqc_content <- readLines(summary_txt)
+fastqc_df_reverse <- read.table(text = fastqc_content, sep = "\t", header = FALSE, fill = TRUE)
+colnames(fastqc_df_reverse) = c("Status", "Module", "File")
+fastqc_df_reverse <- fastqc_df_reverse %>% select(-`File`)
+
+combined_df <- full_join(fastqc_df_forward, fastqc_df_reverse, by = "Module", suffix = c("_forward_paired", "_reverse_paired"))
+combined_df <- combined_df %>% select(Module, Status_forward_paired, Status_reverse_paired)
+
+kable(combined_df, results="asis", align = "c", caption = "Summary statistics of forward_paired and reverse_paired reads after trimming") %>%
+    kable_paper() %>%
+    scroll_box(width = "800px", height = "500px")
+```
+
+Table 2: Summary statistics of forward_paired and reverse_paired reads after trimming
+
+```{r fastqc_images_forward, echo=FALSE, message=FALSE, warning=FALSE, }
+png_image_forward <- (file.path(qc_data_forward, "Images", "per_base_quality.png"))
+fastqc_image_forward <- readPNG(png_image_forward)
+
+png_image_reverse <- (file.path(qc_data_reverse, "Images", "per_base_quality.png"))
+fastqc_image_reverse <- readPNG(png_image_reverse)
+
+png_image_forward_pretrim <- (file.path(qc_data_forward_pretrim, "Images", "per_base_quality.png"))
+fastqc_image_forward_pretrim <- readPNG(png_image_forward_pretrim)
+
+png_image_reverse_pretrim <- (file.path(qc_data_reverse_pretrim, "Images", "per_base_quality.png"))
+fastqc_image_reverse_pretrim <- readPNG(png_image_reverse_pretrim)
+
+grid.arrange(
+    rasterGrob(fastqc_image_forward_pretrim, width = unit(1.1, "npc"), height = unit(0.8, "npc")),
+    nullGrob(),  # Adding a null element to create space
+    rasterGrob(fastqc_image_forward, width = unit(1.1, "npc"), height = unit(0.8, "npc")),
+    layout_matrix = rbind(c(1, 2, 3)), # 1-row layout with 3 columns (empty column in the middle)
+    widths = c(10, 0.2, 10)  # Adjust column widths to control gap size (0.2 creates space between)
+)
+```
+
+Fig 1: Per base quality graphs of forward paired end reads before trimming (left) and after trimmimg (right)
+
+```{r fastqc_images_reverse, echo=FALSE, message=FALSE, warning=FALSE, }
+grid.arrange(
+    rasterGrob(fastqc_image_reverse_pretrim, width = unit(1.1, "npc"), height = unit(0.8, "npc")),
+    nullGrob(),  # Adding a null element to create space
+    rasterGrob(fastqc_image_reverse, width = unit(1.1, "npc"), height = unit(0.8, "npc")),
+    layout_matrix = rbind(c(1, 2, 3)), # 1-row layout with 3 columns (empty column in the middle)
+    widths = c(10, 0.2, 10)  # Adjust column widths to control gap size (0.2 creates space between)
+)
+```
+
+Fig 2: Per base quality graphs of reverse paired end reads before trimming (left) and after trimmimg (right)
+
+For more details, FastQC files are saved here
+
+| Filename                                                                                                                    | Location                           | Description                                           |
+|------------------------------|-------------------|-----------------------|
+| [pretrim_forward_paired_fastqc.html](file://`r file.path(pretrim_qc.dir, paste0(unzipped_dir_forward, '.html'))`) | sample_dir/01_fastqc               | Quality check of forward paired reads before trimming |
+| [pretrim_reverse_paired_fastqc.html](file://`r file.path(pretrim_qc.dir, paste0(unzipped_dir_reverse, '.html'))`) | sample_dir/01_fastqc               | Quality check of reverse paired reads before trimming |
+| [posttrim_forward_paired_fastqc.html](file://`r file.path(qc.dir,'forward_paired_fastqc.html')`)                      | sample_dir/00_trimmed_reads/Fastqc | Quality check of forward paired reads after trimming  |
+| [posttrim_reverse_paired_fastqc.html](file://`r file.path(qc.dir,'reverse_paired_fastqc.html')`)                      | sample_dir/00_trimmed_reads/Fastqc | Quality check of reverse paired reads after trimming  |
+
+### Completeness and Contamination- Post Assembly
+
+This is the quality check of Unicycler assembled contigs done using [CheckM](https://github.com/Ecogenomics/CheckM).
+
+CheckM v1 estimates genome completeness and contamination based on the presence or absence of marker genes, i.e., genes that are typically ubiquitous and single copy.
+
+CheckM output files are stored in `03_checkm/post_assembly` directory in the specified `outdir`.
+
+Following is the command used for assembling the genome:
+
+``` bash
+checkm lineage_wf {sample_dir/02_unicycler/} {sample_dir/03_checkm/post_assembly/} -t 20 &> {sample_dir/03_checkm/post_assembly/table.txt}
+sed -i '1,34d' {sample_dir/03_checkm/post_assembly/table.txt}
+checkm ssu_finder {sample_dir/02_unicycler/assembly.fasta} -x fasta {sample_dir/02_unicycler/} {sample_dir/03_checkm/post_assembly/} -t 20 &> {sample_dir/logs/checkm_post_assembly.log}
+```
+
+```{r checkm_post_assembly, echo=FALSE}
+# Read the absolute paths from the file into a list
+paths <- readLines(file_path)
+checkm_post <- paths[4]
+
+# Process the CheckM post-assembly file
+lines_assembly <- readLines(checkm_post)
+total_lines_assembly <- length(lines_assembly)
+
+fifth_last_line_assembly <- lines_assembly[total_lines_assembly - 4]
+third_last_line_assembly <- lines_assembly[total_lines_assembly - 2]
+
+# Clean up spaces
+third_last_line_assembly <- gsub("[[:space:]]{2,}", "\t", third_last_line_assembly)
+fifth_last_line_assembly <- gsub("[[:space:]]{2,}", "\t", fifth_last_line_assembly)
+third_last_line_assembly <- trimws(third_last_line_assembly)
+fifth_last_line_assembly <- trimws(fifth_last_line_assembly)
+
+# Write the processed data into a new file
+writeLines(c(fifth_last_line_assembly, third_last_line_assembly), "temp/checkm_table_post_assembly.tsv", sep = "\n")
+
+# Read and display the TSV file
+tsv_data_assembly <- read.delim("temp/checkm_table_post_assembly.tsv", header = TRUE, sep = "\t")
+colnames(tsv_data_assembly) <- c("Bin Id", "Marker lineage", "No. of genomes", "No. of markers", "No. of marker sets", "0", "1", "2", "3", "4", "+5", "Completeness", "Contamination", "Strain heterogeneity")
+
+# Display the table
+kable(tsv_data_assembly, results = "asis", align = "c", caption = "Genome completeness and contamination after assembly") %>%
+kable_styling(full_width = FALSE, position = "center") %>%
+row_spec(0, bold = TRUE) %>% # Bold the header row
+scroll_box(width = "900px", height = "300px")
+```
+
+For more details, CheckM-post_assembly output files are saved here
+
+| Filename                                                                                     | Location                           | Description                                                  |
+|------------------------------|-------------------|-----------------------|
+| [table.txt](file://`r file.path(checkm_post)`)                                         | sample_dir/03_checkm/post_assembly | Completeness and contamination statistics after assembly     |
+| [ssu.fna](file://`r file.path(post_assembly_checkm_dir, 'ssu.fna')`)                 | sample_dir/03_checkm/post_assembly | Identification of SSU (16S) rRNA in sequences after assembly |
+| [ssu_summary.tsv](file://`r file.path(post_assembly_checkm_dir, 'ssu_summary.tsv')`) | sample_dir/03_checkm/post_assembly | Summary statistics of SSU rRNAs                              |
+
+### Completeness and Contamination- Post Polishing
+
+This is the quality check of draft genome generated by polishing with Pilon, done using [CheckM](https://github.com/Ecogenomics/CheckM).
+
+CheckM output files are stored in `03_checkm/post_polish` directory in the specified `outdir`.
+
+Following is the command used for assembling the genome:
+
+``` bash
+checkm lineage_wf {sample_dir/08_pilon/} {sample_dir/03_checkm/post_polish/} -t 20 &> {sample_dir/03_checkm/post_polish/table.txt}
+sed -i '1,34d' {sample_dir/03_checkm/post_polish/table.txt}
+checkm ssu_finder {sample_dir/08_pilon/{sample_name}.fasta} -x fasta {sample_dir/08_pilon/} {sample_dir/03_checkm/post_polish/} -t 20 &> {sample_dir/logs/checkm_post_polish.log}
+```
+
+```{r checkm_post_polish, echo=FALSE}
+# Read the absolute paths from the file into a list
+file_path <- "absolute_paths.txt"  # Change this to your actual file path
+paths <- readLines(file_path)
+checkm_post <- paths[5]
+
+# Process the CheckM post-polish file
+lines_polish <- readLines(checkm_post)
+total_lines_polish <- length(lines_polish)
+
+fifth_last_line_polish <- lines_polish[total_lines_polish - 4]
+third_last_line_polish <- lines_polish[total_lines_polish - 2]
+
+# Clean up spaces
+third_last_line_polish <- gsub("[[:space:]]{2,}", "\t", third_last_line_polish)
+fifth_last_line_polish <- gsub("[[:space:]]{2,}", "\t", fifth_last_line_polish)
+third_last_line_polish <- trimws(third_last_line_polish)
+fifth_last_line_polish <- trimws(fifth_last_line_polish)
+
+# Write the processed data into a new file
+writeLines(c(fifth_last_line_polish, third_last_line_polish), "temp/checkm_table_post_polish.tsv", sep = "\n")
+
+# Read and display the TSV file
+tsv_data_polish <- read.delim("temp/checkm_table_post_polish.tsv", header = TRUE, sep = "\t")
+colnames(tsv_data_polish) <- c("Bin Id", "Marker lineage", "No. of genomes", "No. of markers", "No. of marker sets", "0", "1", "2", "3", "4", "+5", "Completeness", "Contamination", "Strain heterogeneity")
+
+# Display the table
+kable(tsv_data_polish, results = "asis", align = "c", caption = "Genome completeness and contamination after polishing") %>%
+kable_styling(full_width = FALSE, position = "center") %>%
+row_spec(0, bold = TRUE) %>% # Bold the header row
+scroll_box(width = "900px", height = "300px")  
+```
+
+For more details, CheckM-post_polishing output files are saved here
+
+| Filename                                                                                   | Location                         | Description                                                   |
+|------------------------------|-------------------|-----------------------|
+| [table.txt](file://`r file.path(checkm_post)`)                                       | sample_dir/03_checkm/post_polish | Completeness and contamination statistics after polishing     |
+| [ssu.fna](file://`r file.path(post_polish_checkm_dir, 'ssu.fna')`)                 | sample_dir/03_checkm/post_polish | Identification of SSU (16S) rRNA in sequences after polishing |
+| [ssu_summary.tsv](file://`r file.path(post_polish_checkm_dir, 'ssu_summary.tsv')`) | sample_dir/03_checkm/post_polish | Summary statistics of SSU rRNAs                               |
+
+### Assembly QC
+
+This is a brief statistics table of quality check of assembled contigs done using [QUAST](https://github.com/ablab/quast?tab=readme-ov-file).
+
+QUAST stands for QUality ASsessment Tool. It evaluates genome/metagenome assemblies by computing various metrics like numbers of misassemblies of different kinds, number and total length of unaligned contigs, number of mismatches and indels- over the assembly and per 100 kb, genome fraction which is the assembled part of the reference, NGA50, a reference-aware version of N50 metric and many more.
+
+QUAST output files are stored in `03_quast/post_assembly` directory in the specified `outdir`.
+
+Following is the command used for assembling the genome:
+
+``` bash
+quast.py -o {sample_dir/03_quast/post_assembly} -r {reference.fasta} --circos {sample_dir/03_quast/assembly.fasta} 
+```
+
+```{r quast_post_assembly, echo=FALSE}
+# Read the absolute paths from the file into a list
+file_path <- "absolute_paths.txt"  # Change this to your actual file path
+paths <- readLines(file_path)
+quast_post <- paths[6]
+quast_post_assembly_df <- read_tsv(quast_post, show_col_types = FALSE)
+if (ncol(quast_post_assembly_df) >= 2) {
+colnames(quast_post_assembly_df) <- c("Assembly", "Statistics")
+quast_post_assembly_df %>%
+        kable(escape = FALSE, align = "c", format = "html", 
+              caption = "Post-Assembly QUAST Summary Statistics") %>%
+        kable_styling(full_width = FALSE, position = "center") %>%
+        row_spec(0, bold = TRUE) %>% # Bold the header row
+        scroll_box(width = "500px", height = "900px")
+
+} else {
+     knitr::asis_output("The QUAST summary does not have enough columns.")
+}
+```
+
+For more details, QUAST output files are saved here
+
+| Filename                                                                         | Location                          | Description                                                                                |
+|------------------------------|-------------------|-----------------------|
+| [report.html](file://`r file.path(post_assembly_quast_dir,'report.html')`) | sample_dir/03_quast/post_assembly | Quality check after assembly with HTML version of the report with interactive plots inside |
+| [icarus.html](file://`r file.path(post_assembly_quast_dir,'icarus.html')`) | sample_dir/03_quast/post_assembly | Icarus main menu with links to interactive viewers                                         |
+
+### Draft genome QC- Post Polishing
+
+This is a brief statistics table of quality check of draft genome (generated after polishing) done using [QUAST](https://github.com/ablab/quast?tab=readme-ov-file).
+
+QUAST output files are stored in `03_quast/post_polish` directory in the specified `outdir`.
+
+Following is the command used for assembling the genome:
+
+``` bash
+quast.py -o {sample_dir/03_quast/post_polish} -r {reference.fasta} --circos {sample_dir/08_pilon/{sample_name}.fasta} 
+```
+
+```{r quast_post_polish, echo=FALSE}
+# Read the absolute paths from the file into a list
+file_path <- "absolute_paths.txt"  # Change this to your actual file path
+paths <- readLines(file_path)
+quast_post <- paths[7]
+quast_post_polish_df <- read_tsv(quast_post, show_col_types = FALSE)
+if (ncol(quast_post_polish_df) >= 2) {
+colnames(quast_post_polish_df) <- c("Assembly", "Statistics")
+quast_post_polish_df %>%
+        kable(escape = FALSE, align = "c", format = "html", 
+              caption = "Post-Polishing QUAST Summary Statistics") %>%
+        kable_styling(full_width = FALSE, position = "center") %>%
+        row_spec(0, bold = TRUE) %>% # Bold the header row
+        scroll_box(width = "500px", height = "900px")
+
+} else {
+     knitr::asis_output("The QUAST summary does not have enough columns.")
+}
+```
+
+For more details, QUAST output files are saved here
+
+| Filename                                                                       | Location                        | Description                                                                                 |
+|------------------------------|-------------------|-----------------------|
+| [report.html](file://`r file.path(post_polish_quast_dir,'report.html')`) | sample_dir/03_quast/post_polish | Quality check after polishing with HTML version of the report with interactive plots inside |
+| [icarus.html](file://`r file.path(post_polish_quast_dir,'icarus.html')`) | sample_dir/03_quast/post_polish | Icarus main menu with links to interactive viewers                                          |
+:::

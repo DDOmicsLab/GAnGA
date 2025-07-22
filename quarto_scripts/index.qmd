@@ -1,0 +1,22 @@
+---
+title: "Genome workflow report"
+format: html
+author: "Harshada Pardeshi"
+editor: visual
+---
+
+This report summarizes the results from several genome analysis tools.
+
+```{r, include=FALSE}
+# Update TinyTeX
+tinytex::tlmgr_update()
+```
+
+-   [Summary](summary.qmd) - Summary of complete genome
+-   [Quality Control](qc.qmd) - Results and metrics from the quality control step
+-   [Assembly](assembly.qmd) - Details about the genome assembly process
+-   [Taxonomy](taxonomy.qmd) - Details about the taxonomical identification of the organism
+-   [Annotation](annotation.qmd) - Annotations of the assembled genome
+-   [Visualization](visualization.qmd) - Visual representation of the genome
+
+
