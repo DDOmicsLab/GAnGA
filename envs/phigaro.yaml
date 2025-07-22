@@ -4,6 +4,7 @@ dependencies:
   - pip
   - bioconda::prodigal
   - bioconda::hmmer
+  - bioconda::fastani
   - bioconda::ezaai
   - pip:
     - phigaro
