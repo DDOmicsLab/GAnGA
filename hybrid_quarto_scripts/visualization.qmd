@@ -1,0 +1,61 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2","devtools","fastqcr","textshaping","yaml")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+file_path <- "absolute_paths.txt"
+```
+
+## Visualization
+
+::: panel-tabset
+### Genovi
+
+This is a visual representation of the annotated circular draft genome done using [GenoVi](https://github.com/robotoD/GenoVi).
+
+GenoVi generates circular genome representations for complete, draft, and multiple bacterial and archaeal genomes. GenoVi pipeline combines several python scripts to automatically generate all needed files for Circos to generate circular plots, including customisable options for colour palettes, fonts, font format, background colour and scaling options for genomes comprising more than 1 replicon. Optionally, it integrates DeepNOG to annotate COG categories using alignment-free methods with user-defined thresholds, creating COG categories histograms and COG distribution plots per genome, contig or replicon, useful for further analyses.
+
+All the GenoVi output files are stored in `17_genovi` directory in the specified `outdir` .
+
+Following is the command used for assembling the genome:
+
+``` bash
+genovi -i {sample_dir/09_bakta/{sample_name}_bakta.gbff} -o genovi -s draft --title {sample_name} --cogs ABCDEFGHIJKLMNOPQRSTUVWXYZ -cs paradise -bc white  &> {sample_dir/logs/genovi.log}
+mv genovi/* {sample_dir/17_genovi}
+```
+
+```{r genovi,echo=FALSE,results="asis"}
+paths <- readLines(file_path)
+genovi_png <- paths[24]
+
+
+if (file.exists(genovi_png) && file.info(genovi_png)$size > 0) {
+  knitr::asis_output(paste0("![](file://", genovi_png, "){width=100%}"))
+} else {
+  knitr::asis_output("**Visualization is unavailable as the number of contigs exceeds 250.**")
+}
+```
+
+For more details, GenoVi output files are saved here
+
+| Filename                                                | Location             | Description             |
+|------------------------------|-------------------|-----------------------|
+| [genovi.png](file://`r file.path(genovi_png)`) | sample_dir/17_genovi | PNG image of the genome |
+:::

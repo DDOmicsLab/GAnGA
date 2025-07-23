@@ -1,0 +1,122 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2", "fastqcr","textshaping", "devtools", "png", "grid","gridExtra")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+file_path <- "absolute_paths.txt"
+
+paths <- readLines(file_path)
+outdir <- paths[36] 
+sample_dir <- paths[38]
+sample_name <- paths[39]
+cd <- paths[37]
+quast_pre <- paths[5]
+quast_post <- paths[6]
+checkm_pre <- paths[3]
+checkm_post <- paths[4]
+bakta_txt <- paths[14]
+```
+
+The current working directory is:
+
+```{r cd, echo=FALSE}
+knitr::asis_output(paste0("**", cd, "**"))
+```
+
+The specified output directory is:
+
+```{r outdir, echo=FALSE}
+knitr::asis_output(paste0("**", outdir, "**"))
+```
+
+All the results for this genome are stored in:
+
+```{r sample_dir, echo=FALSE}
+knitr::asis_output(paste0("**", sample_dir, "**"))
+```
+
+Assembly statistics:
+```{r ass_stats, echo=FALSE, message=FALSE, warning=FALSE}
+ass_lines_pre <- readLines(quast_pre) 
+cat(ass_lines_pre[14], "\n")
+cat(ass_lines_pre[15], "\n")
+cat(ass_lines_pre[16], "\n")
+cat(ass_lines_pre[18], "\n")
+cat(ass_lines_pre[20], "\n")
+
+check_lines_pre <- readLines(checkm_pre)
+
+# Get header and data lines
+header_line <- check_lines_pre[16]
+data_line <- check_lines_pre[18]
+
+# Split lines by whitespace (multiple spaces)
+header_cols <- strsplit(header_line, "\\s{2,}")[[1]]
+data_cols <- strsplit(data_line, "\\s{2,}")[[1]]
+
+# Find indices
+idx_compl <- which(header_cols == "Completeness")
+idx_conta <- which(header_cols == "Contamination")
+
+# Extract values
+compl_value <- data_cols[idx_compl]
+conta_value <- data_cols[idx_conta]
+
+# Print transposed
+cat(paste0("Completeness\t", compl_value, "\nContamination\t", conta_value, "\n"))
+
+```
+
+Assembly statistics post polishing:
+```{r draft_stats, echo=FALSE, message=FALSE, warning=FALSE}
+ass_lines_post <- readLines(quast_post) 
+cat(ass_lines_post[14], "\n")
+cat(ass_lines_post[15], "\n")
+cat(ass_lines_post[16], "\n")
+cat(ass_lines_post[18], "\n")
+cat(ass_lines_post[20], "\n")
+
+check_lines_post <- readLines(checkm_post)
+
+# Get header and data lines
+header_line <- check_lines_post[16]
+data_line <- check_lines_post[18]
+
+# Split lines by whitespace (multiple spaces)
+header_cols <- strsplit(header_line, "\\s{2,}")[[1]]
+data_cols <- strsplit(data_line, "\\s{2,}")[[1]]
+
+# Find indices
+idx_compl <- which(header_cols == "Completeness")
+idx_conta <- which(header_cols == "Contamination")
+
+# Extract values
+compl_value <- data_cols[idx_compl]
+conta_value <- data_cols[idx_conta]
+
+# Print transposed
+cat(paste0("Completeness\t", compl_value, "\nContamination\t", conta_value, "\n"))
+```
+
+Annotation statistics:
+```{r annotation_stats, echo=FALSE}
+file_content <- readLines(bakta_txt)
+cat(file_content[10:24], sep = "\n")
+```

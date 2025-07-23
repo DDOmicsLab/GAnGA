@@ -1,0 +1,61 @@
+#hybrid_config.yaml
+#Set parameters or options for the whole run
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  fastqc: ""
+  Trimmomatic: " SLIDINGWINDOW:4:15 MINLEN:36 "
+  Chopper:
+    quality: "10"
+    min_length: "500"
+  Flye: 
+    options: "-t 80"
+    sequencing_type: "--nano-corr" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
+  Pilon: 
+    options: "-t 80"
+    memory: "160G"
+    sequencer: "nanopore" #nanopore or pacbio 
+  checkm:
+    options: ""
+  quast: ""
+  fastANI: ""
+  Barrnap: ""
+  RGI: "--local --clean --include_loose"
+  Bakta:
+    options: "--min-contig-length 200 --compliant --force"
+  Phigaro: "--save-fasta -d"
+  mobileog:
+    options: "-k 15 -e 1e-20 -p 90 -q 90"
+  crispr:
+    options: "-st dna -sc partial"
+  genovi:
+    COGs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    options: "-cs paradise -bc white "
+
+
+#Directory where the output is expected
+outdir: "/mnt/8tbNew/ganga/test_run/hybrid_results"
+
+#list all the samples with their information
+samples:
+  B_longum:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/shortreads/SRR13280501_1.fastq.gz"
+    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/shortreads/SRR13280501_2.fastq.gz"
+    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/longreads/SRR24651278_1.fastq.gz"
+    genus: "Bifidobacterium"
+    species: "longum"
+    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/reference/Bifidobacterium_longum_subsp_longum_JCM_1217_reference.fasta"
+  K_pneumoniae:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/shortreads/SRR4046827_1.fastq.gz"
+    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/shortreads/SRR4046827_2.fastq.gz"
+    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/longreads/SRR33323135.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/reference/K_pneumoniae_ref.fasta"
+  E_coli:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/shortreads/SRR1770413_1.fastq.gz"
+    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/shortreads/SRR1770413_2.fastq.gz"
+    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/longreads/SRR33397843.fastq.gz"
+    genus: "Escherichia"
+    species: "coli"
+    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/reference/E_coli_K12_ref.fasta"
+

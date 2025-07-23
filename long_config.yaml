@@ -1,0 +1,92 @@
+# long_config.yaml
+#Set parameters or options for the whole run
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  Chopper:
+    quality: "7"
+    min_length: "1000"
+#Filtlong: ""
+  Flye: 
+    options: "-t 80"
+    sequencing_type: "--nano-corr" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
+  Minimap2:
+    options: "-t 80"
+    ax: "map-ont" #enter map-ont or map-pb based on the sequencing platform used (map-ont for Oxford-Nanopore and map-pb for Pacific Biosciences)
+  Racon: 
+    options: "-t 80"
+  checkm:
+    options: ""
+  quast:
+  fastANI: ""
+  Barrnap: ""
+  RGI: "--local --clean --include_loose"
+  Bakta:
+    options: "--min-contig-length 200 --compliant --force"
+  Phigaro: "--save-fasta -d"
+  mobileog:
+    options: "-k 15 -e 1e-20 -p 90 -q 90"
+  crispr:
+    options: "-st dna -sc partial"
+  genovi:
+    COGs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    options: "-cs paradise -bc white "
+
+
+#Directory where the output is expected
+outdir: "/mnt/8tbNew/ganga/test_run/long_reads"
+
+
+#list all the samples with their information
+samples:
+  S82:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S82/00_raw_reads/S82.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+  S90:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S90/00_raw_reads/S90.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+  S105:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S105/00_raw_reads/S105.all.fastq.gz"
+    genus: "Shigella"
+    species: "flexneri"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Shigella_flexneri.fasta"
+  S106:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S106/00_raw_reads/S106.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+  S128:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S128/00_raw_reads/S128.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+  S138:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S138/00_raw_reads/S138.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+  S146:
+    R1: "/mnt/analysis/harshada/fastq_pass/Kleb_redo/pipeline_new/S146/00_raw_reads/S146.all.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/fastq_pass/pipeline_results/reference/Klebsiella_pneumoniae_GCF_000240185.1_ASM24018v2.fasta"
+
+
+  K_pneumoniae:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/long_reads_pipeline/long_reads/ont/K_pneumoniae/SRR33323135.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/K_pneumoniae_ref.fasta"
+  B_longum:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/long_reads_pipeline/long_reads/ont/B_longum/SRR24651278_1.fastq.gz"
+    genus: "Bifidobacterium"
+    species: "longum"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/Bifidobacterium_longum_subsp_longum_JCM_1217_reference.fasta"
+  E_coli:
+    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/long_reads_pipeline/long_reads/ont/E_coli/SRR33397843.fastq.gz"
+    genus: "Escherichia"
+    species: "coli"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/E_coli_K12_ref.fasta"

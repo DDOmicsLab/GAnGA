@@ -1,0 +1,230 @@
+---
+title: "Bacterial Genome Analysis Report"
+author: "Harshada Pardeshi"
+date: "`r Sys.Date()`"
+format:
+  html: default
+execute: 
+  freeze: false
+editor: visual
+---
+
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+required_packages <- c("knitr", "stringr", "stringi","kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2","devtools","fastqcr","textshaping", "tinytex","crayon")
+
+for (pkg in required_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  library(pkg, character.only = TRUE)
+}
+
+# Check if TinyTeX is installed, and install it if necessary
+if (!tinytex::is_tinytex()) {
+  tinytex::install_tinytex()
+}
+file_path <- "absolute_paths.txt"
+```
+
+## Taxonomic Classification
+
+::: panel-tabset
+## Average Nucleotide Identity
+
+Taxonomic classification includes ANI calculation between the query genome and the reference genome. ANI is defined as mean nucleotide identity of orthologous gene pairs shared between two genomes and gives robust resolution between strains of the same or closely related species (i.e., showing 80–100% ANI). It closely reflects the traditional microbiological concept of DNA–DNA hybridization relatedness for defining species. The organisms belonging to the same species typically show **\>=95%** ANI among themselves.
+
+Here, ANI calculation is done using [fastANI](https://github.com/ParBLiSS/FastANI). FastANI is developed for fast, alignment-free computation of whole-genome Average Nucleotide Identity (ANI). It supports pairwise comparison of both complete and draft genome assemblies and large number of genome pairs.
+
+FastANI output files are stored in `06_fastani` directory in the specified `outdir`.
+
+Following is the command used for ANI calculation post assembly:
+
+``` bash
+fastANI -q {sample_dir/02_flye/assembly.fasta} -r {reference.fasta} -o {sample_dir/06_fastani/06_fastani_post_assembly.txt} -t 20 &> {sample_dir/logs/fastani_post_assembly.log}
+```
+
+Following is the command used for ANI calculation post polishing:
+
+``` bash
+fastANI -q {sample_dir/04_pilon/polish.fasta -r {reference.fasta} -o {sample_dir/06_fastani/06_fastani_post_polish.txt} -t 20 &> {sample_dir/logs/fastani_post_polish.log}
+```
+
+```{r taxonomy, echo=FALSE}
+paths <- readLines(file_path)
+ANI_post_assembly <- paths[9]
+ANI_post_polish <- paths[10]
+
+fastANI_post_assembly_table <- read.table(ANI_post_assembly, sep="\t", header=FALSE)
+fastANI_post_assembly_value <- fastANI_post_assembly_table[1,3]
+fastANI_ortho_match <- fastANI_post_assembly_table[1,4]
+fastANI_total_seq <- fastANI_post_assembly_table[1,5]
+
+knitr::asis_output(paste0(
+  "**FastANI value after assembly is: ", fastANI_post_assembly_value,
+  ". ", fastANI_ortho_match,
+  " sequence fragments aligned as orthologous matches out of ",
+  fastANI_total_seq, " total sequence fragments. **\n"
+))
+
+fastANI_post_polish_table <- read.table(ANI_post_polish, sep="\t", header=FALSE)
+fastANI_post_polish_value <- fastANI_post_polish_table[1,3]
+fastANI_ortho_match_pol <- fastANI_post_polish_table[1,4]
+fastANI_total_seq_pol <- fastANI_post_polish_table[1,5]
+
+knitr::asis_output(paste0(
+  "**FastANI value after polishing is: ", fastANI_post_polish_value,
+  ". ", fastANI_ortho_match_pol,
+  " sequence fragments aligned as orthologous matches out of ",
+  fastANI_total_seq_pol, " total sequence fragments. **\n"
+))
+```
+
+
+
+For more details, FastANI output files are saved here
+
+| Filename                                                                         | Location              | Description                     |
+|-------------------------------------|------------------|------------------|
+| [06_fastani_post_assembly.txt](file:// `r file.path(ANI_post_assembly)`) | sample_dir/06_fastani | ANI calculation after assembly  |
+| [06_fastani_post_polish.txt](file:// `r file.path(ANI_post_polish)`)     | sample_dir/06_fastani | ANI calculation after polishing |
+
+## Average Amino acid Identity
+
+AAI is a genome-based similarity index for genus delineation. Numerical standard value of AAI is holds importance when proposing a novel genus. The AAI cut-off value applied for the delineation of genera has a wide range of **60–80%**.
+
+Here, AAI calculation is done using the workflow, [EzAAI](https://github.com/endixk/ezaai). EzAAI is developed for improved AAI calculation performance along with the novel module that provides hierarchical clustering analysis and dendrogram representation.
+
+AAI output files are stored in `06_ezaai` directory in the specified `outdir`.
+
+Following is the command used for AAI calculation:
+
+``` bash
+mkdir -p {sample_dir/06_ezaai/tmp/}
+ezaai extract -i {sample_dir/03_racon/polish.fasta -o {sample_dir/06_ezaai/tmp/}{sample_name}_ezaai.db &> {sample_dir/logs/ezaai.log}
+ezaai extract -i {reference.fasta} -o {sample_dir/06_ezaai/tmp/}ref_ezaai.db &> {sample_dir/logs/ezaai.log}
+ezaai calculate -i {sample_dir/06_ezaai/tmp/}/{sample_name}_ezaai.db -j {sample_dir/06_ezaai/tmp/}/ref_ezaai.db -o {sample_dir/06_ezaai/{sample_name}_aai} &> {sample_dir/logs/ezaai.log}
+mv {sample_dir/06_ezaai/{sample_name}_aai} {sample_dir/06_ezaai/{sample_name}_aai.tsv}
+rm -r {sample_dir/06_ezaai/tmp/}
+```
+
+```{r AAI, echo=FALSE}
+paths <- readLines(file_path)
+AAI <- paths[11]
+aai_df<- read_tsv(AAI, show_col_types = FALSE)
+aai_value <- as.character(aai_df[1, 5])
+knitr::asis_output(paste("**AAI value between sample and reference is:", aai_value, "**\n"))
+```
+
+For more details, AAI output files are saved here
+
+| Filename                                      | Location            | Description                     |
+|-------------------------------|-------------------|-----------------------|
+| [aai.tsv](file:// `r file.path(AAI)`) | sample_dir/07_ezaai | AAI calculation after polishing |
+
+## Percentage of Conserved Proteins (POCP)
+
+POCP is also a genome-based similarity index for genus delineation and is holds importance when proposing a novel genus. POCP is calculated using an amino acid sequence, it allows a higher resolution comparison for distant groups. The strains showing POCP value **over 50%** can be considered belonging to the same genus.
+
+Here, POCP calculation is done using [pocp](https://github.com/hoelzer/pocp).pocp is designed for automated POCP calculation, aiming to enhance reproducibility and ease of use in taxonomic studies. It calculates all-vs-all and also one-vs-all pairewise alignments between all given protein sequences using blastp mode of DIAMOND and uses it for POCP calculation.
+
+POCP output files are stored in `06_pocp` directory in the specified `outdir`.
+
+A snakemake wrapper is used for POCP calculation:
+
+``` bash
+"https://raw.githubusercontent.com/snakemake/snakemake-wrappers/master/utils/nextflow/wrapper.py"
+```
+
+```{r POCP, echo=FALSE}
+paths <- readLines(file_path)
+POCP <- paths[12]
+pocp_df <- read_tsv(POCP, show_col_types=FALSE)
+pocp_value <- as.character(pocp_df[2,2])
+knitr::asis_output(paste("**POCP value between sample and reference is:", pocp_value, "**\n"))
+```
+
+For more details, POCP output files are saved here
+
+| Filename                                               | Location           | Description                             |
+|-------------------------------|-------------------|-----------------------|
+| [pocp-matrix.tsv](file:// `r file.path(POCP)`) | sample_dir/07_pocp | POCP calculation matrix after polishing |
+
+## rRNA sequences
+
+These are the rRNA sequences (5S, 23S and 16S) of the genome extracted using [Barrnap](https://github.com/tseemann/barrnap). 16S rRNA sequence is used in identifying reference genome and performing taxonomical classification.
+
+Barrnap stands for **BA**sic **R**apid **R**ibosomal **RNA** **P**redictor. It predicts the location of ribosomal RNA genes in genomes. Barrnap supports bacteria (5S,23S,16S), archaea (5S,5.8S,23S,16S), metazoan mitochondria (12S,16S) and eukaryotes (5S,5.8S,28S,18S).
+
+Barrnap output files are stored in `09_barrnap` directory in the specified `outdir`.
+
+Following is the command used for extracting rRNA sequences:
+
+``` bash
+barrnap -o {sample_dir/09_barrnap/{sample_name}_rrna.fa} <{sample_dir/03_racon/polish.fasta --threads 20 &> {sample_dir/logs/barrnap.log}
+```
+
+The rRNA sequences are given below:
+
+```{r barrnap, echo=FALSE}
+paths <- readLines(file_path)
+barrnap <- paths[17]
+file_content <- readLines(barrnap)
+rRNA_sequence_df <- data.frame(Sequence = file_content)
+kable(rRNA_sequence_df, format = "html", escape = FALSE) %>%
+    kable_styling() %>%
+    scroll_box(width = "1000px", height = "300px")
+```
+
+For more details, Barrnap output files are saved here
+
+| Filename                                          | Location              | Description                        |
+|-------------------------------|-------------------|-----------------------|
+| [rrna.fa](file:// `r file.path(barrnap)`) | sample_dir/10_barrnap | Fasta file with hit rRNA sequences |
+
+### Multi-Locus Sequence Typing
+
+```{r mlst, echo=FALSE, message=FALSE}
+paths <- readLines(file_path)
+mLst_csv <- paths[31]
+
+# Read the CSV as tab-separated values
+mlst_df <- fread(mLst_csv, sep = "\t", header = FALSE, fill = TRUE)
+
+# Keep only the first row (actual data)
+mlst_df <- mlst_df[1, ]
+
+# Check if the first row is empty
+if (all(sapply(mlst_df, function(col) all(is.na(col) | col == "")))) {
+  cat("No supportive PubMLST scheme available\n")
+} else {
+  # Generate dynamic column names
+num_cols <- ncol(mlst_df)  # Get actual number of columns
+#print(num_cols)
+if (num_cols == 3) {
+colnames(mlst_df) <- c("File name", "PubMLST scheme name", "Sequence type (ST)")
+  } else if (num_cols > 3) {
+    colnames(mlst_df) <- c("File name", "PubMLST scheme name", "Sequence type (ST)", 
+                            paste0("Allele_", 1:(num_cols - 3)))
+  } else {
+    colnames(mlst_df) <- paste0("Column_", 1:num_cols)  # Assign generic names
+  }
+
+  mlst_df[[1]] <- basename(mlst_df[[1]])
+# Print for debugging
+#print(mlst_df)
+
+# Render in Quarto Report
+kable(mlst_df, results="asis", align = "c", escape = FALSE, caption = "MLST assignment") %>%
+    kable_styling(full_width = FALSE, bootstrap_options = "striped", position = "center") %>%
+    row_spec(0, bold = TRUE) %>% # Bold the header row
+    scroll_box(width = "1000px", height = "200px")
+}
+```
+
+For more details, MLST output file is saved here
+
+| Filename                                          | Location          | Description                  |
+|------------------------------|-------------------|-----------------------|
+| [mlst.csv](file:// `r file.path(mLst_csv)`) | sample_dir/14_mlst | CSV file of MLST prediction |
+:::

@@ -1,0 +1,80 @@
+/* css styles */
+/* Ensure body has no margin or padding to remove extra space */
+body {
+  margin: 0 !important;  /* Remove body margin */
+  padding: 0 !important; /* Remove body padding */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 250px;
+  position: fixed;
+  top: 0;
+  left: 0;  /* Flush to the left edge */
+  height: 100%;  /* Full height of the page */
+  background-color: #2c3e50 !important;  /* Dark background */
+  color: #ecf0f1;
+  overflow-y: auto;  /* Enable scrolling if content exceeds height */
+  padding-top: 20px;
+  padding-left: 10px; /* Add padding to align content */
+  box-sizing: border-box;  /* Ensure padding is included in width */
+  z-index: 100;
+  border-right: 2px solid #34495e;  /* Slight border to separate sidebar */
+}
+
+/* Sidebar box-style for navigation links */
+.sidebar a {
+  display: block;
+  padding: 10px 15px;  /* Box padding around links */
+  margin-bottom: 5px;  /* Space between links */
+  background-color: #34495e;  /* Slightly darker background for box style */
+  color: #ecf0f1;
+  text-decoration: none;
+  border-radius: 5px;  /* Rounded corners for box effect */
+}
+
+.sidebar a:hover {
+  background-color: #364e66;  /* Blue background on hover */
+  color: #f1c40f;  /* Yellow text on hover */
+}
+
+/* Sidebar heading styling */
+.sidebar h2, .sidebar h3 {
+  padding: 10px 15px;
+  margin-bottom: 10px;  /* Space below headings */
+  color: #ecf0f1;
+  background-color: inherit;
+  border-bottom: 1px solid #ecf0f1;  /* Add bottom border for headings */
+}
+
+/* Main content area moves to the right of the sidebar */
+.main-content {
+  margin-left: 250px;  /* Shift content based on sidebar width */
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+
+/* Toggle button styling */
+#sidebarToggle {
+  position: absolute;
+  top: 10px;
+  left: 260px;
+  background-color: #e74c3c;  /* Red background */
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  transition: left 0.3s;
+}
+
+#sidebarToggle.collapsed {
+  left: 10px;
+  background-color: #3498db;  /* Blue background when collapsed */
+}
+
+/* Optional: Add smooth scrolling effect */
+html {
+  scroll-behavior: smooth;
+}
+
