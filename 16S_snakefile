@@ -1,0 +1,73 @@
+data_dir = config["outdir"]
+
+current_directory = os.getcwd()
+rule all:
+    input: 
+        expand(
+            [
+            os.path.join(data_dir, "{sample}/barrnap/{sample}_rrna.fa")
+            
+            ],sample=config["samples"]
+        ),
+
+
+
+rule Trimmomatic:
+    input:
+        r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
+        r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
+    output:
+        forward_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
+        forward_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_unpaired.fastq.gz"),
+        reverse_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
+        reverse_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_unpaired.fastq.gz"),
+    params:
+        options=lambda wildcards:config["parameters"]["Trimmomatic"],
+    conda:
+        "envs/trimmomatic.yaml"
+    log:
+        os.path.join(data_dir,"{sample}/logs/trimmomatic.log"),
+    threads:
+        10
+    shell:
+        """
+         trimmomatic PE -threads {threads} -phred33 {input.r1} {input.r2} {output.forward_paired} {output.forward_unpaired} {output.reverse_paired} {output.reverse_unpaired} {params.options} &> {log}
+        """   
+
+rule Unicycler:
+    input:
+        trimmed_r1=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
+        trimmed_r2=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
+    output:
+        os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+    params:
+        outdir=directory(os.path.join(data_dir, "{sample}/02_unicycler")),
+        options=lambda wildcards:config["parameters"]["Unicycler"],
+    conda:
+        "envs/unicycler.yaml"
+    log:
+        os.path.join(data_dir,"{sample}/logs/unicycler.log"),
+    threads:
+        40
+    shell:
+        """
+        unicycler -1 {input.trimmed_r1} -2 {input.trimmed_r2} -o {params.outdir} {params.options} -t {threads} &> {log}
+        """
+
+
+rule Barrnap:
+    input:
+        os.path.join(data_dir, "{sample}/02_unicycler/assembly.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/barrnap/{sample}_rrna.fa"),
+    params:
+        options=lambda wildcards:config["parameters"]["Barrnap"]
+    log:
+        os.path.join(data_dir,"{sample}/logs/barrnap.log")
+    threads:
+        20
+    shell:
+        """
+        barrnap -o {output} <{input} {params.options} --threads {threads} &> {log}
+        """
+

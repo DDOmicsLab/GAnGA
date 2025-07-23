@@ -1,3 +1,9 @@
 databases/
 tools/
 flags/
+quarto_scripts/.RData
+quarto_scripts/.Rhistory
+quarto_scripts/.Rproj
+quarto_scripts/.quarto/
+quarto_scripts/.quarto/xref/
+quarto_scripts/.quarto/_freeze/

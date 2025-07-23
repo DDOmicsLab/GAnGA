@@ -1,0 +1,128 @@
+import os
+data_dir = config["outdir"] 
+current_directory = os.getcwd()
+rule all:  # type: ignore
+    input:
+        expand(  # type: ignore
+            [
+            os.path.join(data_dir, "{sample}/barrnap/{sample}_rrna.fa"),
+            ],sample=config["samples"]
+        ),
+
+
+
+rule Chopper:
+    input:
+        raw_reads=lambda wildcards: config["samples"][wildcards.sample]["R1"],
+    output:
+        os.path.join(data_dir, "{sample}/00_chopper/filtered.fastq"),
+    params:
+        quality=config["parameters"]["Chopper"]["quality"],
+        min_length=config["parameters"]["Chopper"]["min_length"],
+        outdir=os.path.join(data_dir, "{sample}/00_chopper")
+    log:
+        os.path.join(data_dir,"{sample}/logs/chopper.log")
+    threads:
+        20
+    conda:
+        "envs/chopper.yaml"
+    shell:
+        """
+        chopper --quality {params.quality} --minlength {params.min_length} -i {input.raw_reads} > {output} 2> {log}
+        """
+
+
+rule Flye:
+    input:
+        trimmed_reads= os.path.join(data_dir, "{sample}/00_chopper/filtered.fastq"),
+    output:
+        os.path.join(data_dir, "{sample}/01_flye/assembly.fasta"),
+    params:
+        outdir=os.path.join(data_dir,"{sample}/01_flye"),
+        sequencing_type= config["parameters"]["Flye"]["sequencing_type"], # type: ignore
+        options=lambda wildcards:config["parameters"]["Flye"]["options"],
+    log:
+        os.path.join(data_dir,"{sample}/logs/flye.log"),
+    threads:
+        20
+    conda:
+        "envs/flye.yaml"
+    shell:
+        """
+        mkdir -p {params.outdir}
+        flye {params.sequencing_type} {input.trimmed_reads} --out-dir {params.outdir} {params.options} --scaffold 2> {log}
+        """
+
+
+rule Minimap2:
+    input:
+        assembly= os.path.join(data_dir, "{sample}/01_flye/assembly.fasta"),
+        raw_reads=lambda wildcards: config["samples"][wildcards.sample]["R1"],
+    output:
+        os.path.join(data_dir, "{sample}/02_minimap2/aln.sam"),
+    params:
+        outdir=os.path.join(data_dir,"{sample}/02_minimap2"),
+        ax= config["parameters"]["Minimap2"]["ax"],
+        options=lambda wildcards:config["parameters"]["Minimap2"]["options"],
+        cd=current_directory
+    log:
+        os.path.join(data_dir,"{sample}/logs/minimap2.log"),
+    threads:
+        20
+
+    shell:
+        """
+        minimap2 -ax {params.ax} {input.assembly} {input.raw_reads} {params.options} > {output}
+        """
+
+rule Racon:
+    input:
+        raw_reads=lambda wildcards: config["samples"][wildcards.sample]["R1"],
+        overlaps= os.path.join(data_dir, "{sample}/02_minimap2/aln.sam"),
+        assembly= os.path.join(data_dir, "{sample}/01_flye/assembly.fasta"),
+    output:
+        assembly=os.path.join(data_dir, "{sample}/03_racon/polish.fasta"),
+        contig_header_reduced=os.path.join(data_dir, "{sample}/03_racon/{sample}_contig_header_reduced.fasta"),
+    params:
+        outdir=os.path.join(data_dir, "{sample}/03_racon"),
+        options=lambda wildcards:config["parameters"]["Racon"]["options"],
+        temp_fasta=os.path.join(data_dir, "{sample}/03_racon/temp.fasta"),
+    log:
+        os.path.join(data_dir,"{sample}/logs/racon.log")
+    threads:
+        20
+    conda:
+        "envs/racon.yaml"
+    shell:
+        """
+        racon {input.raw_reads} {input.overlaps} {input.assembly} {params.options} > {output.assembly} 2> {log}
+        sed 's/|/_/g' {output.assembly} > {output.contig_header_reduced}
+        count=0
+        while IFS= read -r line
+        do
+            if [[ $line == ">"* ]]; then
+                count=$((count + 1))
+                echo "> contig_$count" >> {params.temp_fasta}
+            else
+                echo "$line" >> {params.temp_fasta}
+            fi
+        done < {output.contig_header_reduced}
+        rm {output.contig_header_reduced}
+        mv {params.temp_fasta} {output.contig_header_reduced}
+        """
+
+rule Barrnap:
+    input:
+        os.path.join(data_dir, "{sample}/03_racon/polish.fasta"),
+    output:
+        os.path.join(data_dir, "{sample}/barrnap/{sample}_rrna.fa"),
+    params:
+        options=lambda wildcards:config["parameters"]["Barrnap"]
+    log:
+        os.path.join(data_dir,"{sample}/logs/barrnap.log")
+    threads:
+        20
+    shell:
+        """
+        barrnap -o {output} <{input} {params.options} --threads {threads} &> {log}
+        """

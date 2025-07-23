@@ -9,7 +9,7 @@ rule all:
     input: 
         expand(
             [
-            os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"),
+            os.path.join(data_dir, "{sample}/logs/{sample}_validate_taxa.done"),
             os.path.join(data_dir, "{sample}/01_fastqc"),
             os.path.join(data_dir, "{sample}/00_trimmed_reads/Fastqc"),
             os.path.join(data_dir,"{sample}/03_checkm/post_assembly/checkm.log"),
@@ -66,7 +66,7 @@ rule validate_taxa:
     input:
         tsv_file=os.path.join(current_directory, "scripts/valid_taxa.tsv")
     output:
-        touch(os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"))
+        touch(os.path.join(data_dir, "{sample}/logs/{sample}_validate_taxa.done"))
     params:
         genus=lambda wildcards:config["samples"][wildcards.sample]["genus"],
         species=lambda wildcards:config["samples"][wildcards.sample]["species"],
@@ -103,7 +103,7 @@ rule FastQC_pretrim:
 
 rule Trimmomatic:
     input:
-        valid_taxa=os.path.join(data_dir, "{sample}/{sample}_validate_taxa.done"),
+        valid_taxa=os.path.join(data_dir, "{sample}/logs/{sample}_validate_taxa.done"),
         r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
         r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
     output:
@@ -513,7 +513,7 @@ rule RGI:
     params:
         prefix=os.path.join(data_dir, "{sample}/12_rgi/{sample}_rgi"),
         options=lambda wildcards:config["parameters"]["RGI"],
-	rgi_dir=os.path.join(tools_dir, "rgi"),
+	tools_dir=tools_dir,
 	cd=current_directory
     log:
         os.path.join(data_dir,"{sample}/logs/rgi.log")
@@ -523,7 +523,7 @@ rule RGI:
         "envs/probiopred.yaml"
     shell:
         """
-	cd {params.rgi_dir}
+	cd {params.tools_dir}
         rgi main -i {input.pilon_assembly} -o {params.prefix} {params.options} -n {threads} &> {log}
         sed 's/\t\t/\tn\/a\t/g' {output.txt} > {output.tsv}
        

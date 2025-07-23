@@ -1,0 +1,17 @@
+# config.yaml
+#Set parameters or options for the whole run
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  Trimmomatic: " SLIDINGWINDOW:4:15 MINLEN:36 "
+  Unicycler: "--min_fasta_length 100"
+  Barrnap: ""
+  
+#Directory where the output is expected
+outdir: ""
+
+
+#list all the samples with their information (Mention the global paths of R1 and R2)
+samples:
+  Genome_1:
+    R1: ""
+    R2: ""

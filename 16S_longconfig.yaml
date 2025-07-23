@@ -1,0 +1,25 @@
+# long_config.yaml
+#Set parameters or options for the whole run
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  Chopper:
+    quality: "7"
+    min_length: "500"
+  Flye: 
+    options: "-t 8"
+    sequencing_type: "--nano-corr" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
+  Minimap2:
+    options: "-t 8"
+    ax: "map-ont" #enter map-ont or map-pb based on the sequencing platform used (map-ont for Oxford-Nanopore and map-pb for Pacific Biosciences)
+  Racon: 
+    options: "-t 8"
+  Barrnap: ""
+
+#Directory where the output is expected
+outdir: ""
+
+#list all the samples with their information
+samples:
+  Genome_1:
+    R1: ""
+
