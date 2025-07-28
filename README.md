@@ -44,14 +44,89 @@ conda config --add channels https://repo.anaconda.com/pkgs/r
 ```
 
 ###  Install System Dependencies (for R and Bioinformatics Tools)
-```
+<details>
+<summary><strong>Ubuntu / Debian</strong></summary>
+
+```bash
+# Install system dependencies
+sudo apt update
 sudo apt install python3-pip build-essential cmake gfortran gobjc gobjc++ gnustep gnustep-devel libbz2-dev liblzma-dev libpcre2-dev libcurl4-openssl-dev libcairo2-dev libtiff5-dev libreadline-dev libxml2-dev libharfbuzz-dev libfribidi-dev libglpk-dev libgsl-dev libgmp-dev libmpc-dev libudunits2-dev libgdal-dev libmagick++-dev
-```
-```
-sudo apt-get install libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev gcc g++
-```
-```
+
+# Additional image libraries
+sudo apt install libfreetype6-dev libpng-dev libjpeg-dev gcc g++
+
+# Conda-based install
 conda install -c conda-forge pkg-config
+```
+
+</details>
+
+<details>
+<summary><strong>macOS (Homebrew)</strong></summary>
+
+```bash
+# Install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install packages
+brew install python@3.12 cmake gcc pcre2 xz bzip2 curl cairo libtiff readline libxml2 harfbuzz fribidi gsl gmp mpc udunits gdal imagemagick libjpeg libpng freetype pkg-config
+
+# Conda-based install
+conda install -c conda-forge pkg-config
+```
+
+</details>
+
+<details>
+<summary><strong>RedHat / CentOS / Fedora</strong></summary>
+
+```bash
+# Enable EPEL and install development tools
+sudo dnf install epel-release
+sudo dnf groupinstall "Development Tools"
+
+# Install required packages
+sudo dnf install python3-pip cmake gcc-gfortran gcc-objc gnustep gnustep-make bzip2-devel xz-devel pcre2-devel libcurl-devel cairo-devel libtiff-devel readline-devel libxml2-devel harfbuzz-devel fribidi-devel glpk-devel gsl-devel gmp-devel libmpc-devel udunits2-devel gdal-devel ImageMagick-c++-devel freetype-devel libpng-devel libjpeg-devel
+
+# Conda-based install
+conda install -c conda-forge pkg-config
+```
+
+</details>
+
+<details>
+<summary><strong>openSUSE</strong></summary>
+
+```bash
+sudo zypper refresh
+sudo zypper install python3-pip gcc-fortran gcc-objc cmake gnustep gnustep-make libbz2-devel xz-devel libpcre2-devel libcurl-devel cairo-devel libtiff-devel readline-devel libxml2-devel harfbuzz-devel fribidi-devel glpk-devel gsl-devel gmp-devel libmpc-devel libudunits2-devel gdal-devel ImageMagick-c++-devel freetype-devel libpng-devel libjpeg-devel
+
+# Conda-based install
+conda install -c conda-forge pkg-config
+```
+
+</details>
+
+<details>
+<summary><strong>Windows (PowerShell)</strong></summary>
+
+```powershell
+# Install Chocolatey (run in Administrator PowerShell)
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install tools
+choco install python cmake mingw imagemagick -y
+
+# Conda-based install
+conda install -c conda-forge pkg-config
+
+# Update pip and setuptools
+python -m pip install --upgrade pip setuptools wheel
+```
+
+> For full C/C++ support, you may also need to install Microsoft Build Tools.
 ```
 
 ## Installation 
