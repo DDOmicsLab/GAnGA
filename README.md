@@ -58,7 +58,6 @@ sudo apt install libfreetype6-dev libpng-dev libjpeg-dev gcc g++
 # Conda-based install
 conda install -c conda-forge pkg-config
 ```
-
 </details>
 
 <details>
@@ -126,7 +125,12 @@ conda install -c conda-forge pkg-config
 python -m pip install --upgrade pip setuptools wheel
 ```
 
-For full C/C++ support, you may also need to install Microsoft Build Tools.
+```
+> For full C/C++ support, you may also need to install Microsoft Build Tools.
+
+> For full C/C++ support, you may also need to install Microsoft Build Tools.
+```
+</details>
 
 ## Installation 
 ### 1. Download the repository
