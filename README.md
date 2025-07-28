@@ -127,7 +127,6 @@ python -m pip install --upgrade pip setuptools wheel
 ```
 
 > For full C/C++ support, you may also need to install Microsoft Build Tools.
-```
 
 ## Installation 
 ### 1. Download the repository
