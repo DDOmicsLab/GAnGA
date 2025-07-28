@@ -39,8 +39,8 @@ conda config --add channels conda-forge
 conda config --add channels bioconda
 conda config --add channels ursky
 conda config --add channels defaults
-conda config https://repo.anaconda.com/pkgs/main
-conda config https://repo.anaconda.com/pkgs/r
+conda config --add channels https://repo.anaconda.com/pkgs/main
+conda config --add channels https://repo.anaconda.com/pkgs/r
 ```
 
 ###  Install System Dependencies (for R and Bioinformatics Tools)
