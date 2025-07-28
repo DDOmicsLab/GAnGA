@@ -135,7 +135,7 @@ python -m pip install --upgrade pip setuptools wheel
 ## Installation 
 ### 1. Download the repository
 ```
-git clone https://github.com/DDOmicsLab/short_reads_pipeline.git](https://github.com/DDOmicsLab/GAnGA.git
+git clone https://github.com/DDOmicsLab/GAnGA.git
 ```
 
 ### 2. Use the yaml file to create environment
