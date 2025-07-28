@@ -136,6 +136,7 @@ python -m pip install --upgrade pip setuptools wheel
 ### 1. Download the repository
 ```
 git clone https://github.com/DDOmicsLab/GAnGA.git
+cd GAnGA
 ```
 
 ### 2. Use the yaml file to create environment
