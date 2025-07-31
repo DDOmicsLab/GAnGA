@@ -28,19 +28,32 @@ bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
 ~/miniconda3/bin/conda init bash
 ```
 
+###  Add Channels
+To configure your Conda environment with the necessary channels, run the following commands in the specified order:
+```
+conda config --add channels https://repo.anaconda.com/pkgs/r
+conda config --add channels https://repo.anaconda.com/pkgs/main
+conda config --add channels defaults
+conda config --add channels ursky
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+### Important:
+The order of channels matters. The correct order should be: ```conda-forge``` → ```bioconda``` → ```ursky``` → ```defaults``` → ```https://repo.anaconda.com/pkgs/main``` → ```https://repo.anaconda.com/pkgs/r```. You can verify the current order using:
+```
+conda config --show channels
+```
+If the order is incorrect, re-add them starting from ```https://repo.anaconda.com/pkgs/r``` and add up to ```conda-forge``` last.
+
+If the terms of service have not been accepted for any channel, they should be accepted before proceeding. To accept a channel's Terms of Service, run the following and replace `CHANNEL` with the channel name/URL:
+```
+conda tos accept --override-channels --channel CHANNEL
+Example: conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
+```
+
 ###  Update Conda
 ```
 conda update -n base -c conda-forge conda -y
-```
-
-###  Add Channels
-```
-conda config --add channels conda-forge
-conda config --add channels bioconda
-conda config --add channels ursky
-conda config --add channels defaults
-conda config --add channels https://repo.anaconda.com/pkgs/main
-conda config --add channels https://repo.anaconda.com/pkgs/r
 ```
 
 ###  Install System Dependencies (for R and Bioinformatics Tools)
