@@ -8,5 +8,6 @@ dependencies:
   - python==3.6.15
   - prodigal
   - diamond
+  - unzip
   - pip:
       - pandas
