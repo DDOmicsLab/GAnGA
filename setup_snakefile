@@ -223,15 +223,37 @@ rule mobileOG_db_install:
     params:
         cd=current_directory,
         mobileog_db_download_path= config["mobileog_db_download_path"],
-        shellscript=os.path.join(tools_dir, "mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
+        mobileOg=os.path.join(tools_dir, "mobileOg"),
+	shellscript=os.path.join(tools_dir, "mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
         tools_dir=os.path.join(current_directory, "tools")
     threads:
         20
     shell:
         """
-	    cd {params.tools_dir}
-        if [ ! -d "mobileOg" ]; then
-            mkdir mobileOg
+	 echo " Setting up mobileOG DB..."
+        mkdir -p {params.tools_dir}  
+	cd {params.tools_dir}
+
+          mobileog_db_dir="{params.mobileOg}/mobileOG-db-main"
+
+           required_mobileog_files=(
+              "$mobileog_db_dir/mobileOG-pl"
+              "$mobileog_db_dir/mobileog_db.faa"
+              "$mobileog_db_dir/mobileog_db.dmnd"
+           )
+
+        all_mobileog_files_exist=true
+        for file in "${{required_mobileog_files[@]}}"; do
+          if [ ! -e "$file" ]; then
+            all_mobileog_files_exist=false
+            break
+          fi
+        done
+
+        if [ "$all_mobileog_files_exist" = false ]; then
+        echo "📦 MobileOG DB not found or incomplete. Downloading..."
+            rm -rf "$mobileog_db_dir"
+            mkdir -p {params.mobileOg}
             cd mobileOg/
             wget https://github.com/clb21565/mobileOG-db/archive/refs/heads/main.zip
             unzip main
@@ -242,13 +264,13 @@ rule mobileOG_db_install:
             mv *csv mobileog_db.csv
             mv *faa mobileog_db.faa
             diamond makedb --in mobileog_db.faa -d mobileog_db.dmnd
-
-
-
             cd {params.cd}
+        else
+            echo "✅ Done: mobileOG DB setup complete."
         fi
         echo -n > {output}
-        """
+        true
+	"""
 
 
 rule CRISPRcasIdentifier_setup:
