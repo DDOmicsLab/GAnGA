@@ -260,6 +260,8 @@ rule Panvita_setup:
         if [ ! -d "{params.panvita_dir}" ]; then
             echo "📦 Cloning Panvita into tools directory..."
             git clone https://github.com/dlnrodrigues/panvita.git
+	    cd panvita
+            python3 panvita.py -u
             echo "✅ Panvita clone complete."
         else
             echo "✅ Panvita already exists. Skipping clone."
