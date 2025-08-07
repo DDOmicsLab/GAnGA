@@ -62,7 +62,7 @@ conda update -n base -c conda-forge conda -y
 
 ```bash
 # Install system dependencies
-sudo apt update
+sudo apt-get update && sudo apt-get upgrade
 sudo apt install python3-pip build-essential cmake gfortran gobjc gobjc++ gnustep gnustep-devel libbz2-dev liblzma-dev libpcre2-dev libcurl4-openssl-dev libcairo2-dev libtiff5-dev libreadline-dev libxml2-dev libharfbuzz-dev libfribidi-dev libglpk-dev libgsl-dev libgmp-dev libmpc-dev libudunits2-dev libgdal-dev libmagick++-dev
 
 # Additional image libraries
