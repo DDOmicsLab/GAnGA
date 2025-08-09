@@ -173,6 +173,7 @@ Run the following command to install all required tools and databases.
 
 Replace ```/path/to/mobileOGdb/beatrix-1-6_v1_all.zip``` with the actual path to the file downloaded in Step i:
 ```
+cd path/to/GAnGA
 snakemake -s setup_snakefile --use-conda --cores 8 --config mobileog_db_download_path=/path/to/mobileOGdb/beatrix-1-6_v1_all.zip
 ```
 ### OR
