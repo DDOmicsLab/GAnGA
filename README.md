@@ -16,6 +16,11 @@ The pipeline performs:
 
 It produces a comprehensive, human-readable **HTML report** summarizing all results.
 
+## System Requirements
+Atleast 50 Gb disk space where you are installing GAnGA
+Minimum 16 Gb memory
+Minimum 8 cores
+Uninterupted internet is difficult to get but you have it you will be though in no time! (>50 mbps speed)
 
 ## Requirements
 
@@ -150,6 +155,7 @@ python -m pip install --upgrade pip setuptools wheel
 
 ## Installation 
 ### 1. Download the repository
+Download the repository in the location where you have atleast 50 GB of disk space
 ```
 git clone https://github.com/DDOmicsLab/GAnGA.git
 cd GAnGA
@@ -173,6 +179,9 @@ conda activate ganga
   
 #### ii) Installation (Recommended)
 Run the following command to install all required tools and databases.
+Make sure you have atleast 50GB of space for the installation. 
+This steps installs all the necessary softwares and required databases inside the GAnGA directory
+
 
 Replace ```/path/to/mobileOGdb/beatrix-1-6_v1_all.zip``` with the actual path to the file downloaded in Step i:
 ```
