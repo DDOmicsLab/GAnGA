@@ -68,6 +68,9 @@ sudo apt install python3-pip build-essential cmake gfortran gobjc gobjc++ gnuste
 # Additional image libraries
 sudo apt install libfreetype6-dev libpng-dev libjpeg-dev gcc g++
 
+# Required to install LaTex
+sudo apt-get update && sudo apt-get install -y texlive-full pandoc
+
 # Conda-based install
 conda install -c conda-forge pkg-config
 ```
