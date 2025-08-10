@@ -53,16 +53,22 @@ for (pkg in cran_packages) {
 }
 
 # ------------------ Install TinyTeX ------------------ #
-if (!requireNamespace("tinytex", quietly = TRUE))
-  install.packages("tinytex")
+suppressPackageStartupMessages({
+  if (!requireNamespace("tinytex", quietly = TRUE)) {
+    install.packages("tinytex", repos = "https://cloud.r-project.org")
+  }
+  library(tinytex)
+})
 
-if (!tinytex::is_tinytex()) {
-  message("TinyTeX or LaTeX not found. Installing TinyTeX...")
-  tinytex::install_tinytex()
+# Single, robust rule:
+# - If pdflatex exists (system TeX Live from apt), do NOT install TinyTeX
+# - If not found, install TinyTeX (useful for non-Ubuntu cases)
+if (nzchar(Sys.which("pdflatex"))) {
+  message("System LaTeX found (pdflatex). Skipping TinyTeX installation.")
 } else {
-  message("LaTeX is already installed. Skipping installation.")
+  message("No system LaTeX found. Installing TinyTeX for this user...")
+  tinytex::install_tinytex(force = TRUE)
 }
-
 
 
 # ------------------ Done ------------------ #
