@@ -236,7 +236,7 @@ snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 
 Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.yaml``` files.
 
-3. Run ```blastn``` against rRNA/ITS databases at [NCBI BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome) with the 16S rRNA sequence as the query sequence
+3. Run ```blastn``` against rRNA/ITS databases at [NCBI BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome) or [NCBI Genomes](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastSearch&BLAST_SPEC=MicrobialGenomes) with the 16S rRNA sequence as the query sequence
 4. Select and download the complete reference genome in **FASTA format**.
 
 ### Execution
