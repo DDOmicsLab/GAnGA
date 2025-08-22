@@ -226,6 +226,8 @@ samples:
     R2: "/path/to/short_raw_reads/R2.fastq.gz"
 ```
 #### 2. Run the pipeline
+Note: Make sure that your environment is activated
+conda activate ganga
 ```
 cd path/to/installation/directory/GAnGA
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
