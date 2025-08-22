@@ -644,9 +644,7 @@ rule pocp:
         "envs/pocp.yaml"
     shell:
         """
-        nextflow run hoelzer/pocp -r 2.3.0 --genomes {input.genomes} --genome {input.genome} -profile local,conda 2> {log}
-        mv results/* {params.output}
-        rm -rf results/
+        nextflow run hoelzer/pocp -r 2.3.0 --genomes {input.genomes} --genome {input.genome} -profile local,conda {params.output} 2> {log}
         """
        
 
