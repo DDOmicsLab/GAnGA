@@ -227,6 +227,7 @@ samples:
 ```
 #### 2. Run the pipeline
 ```
+cd path/to/installation/directory/GAnGA
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 ```
 ```{genome}_rrna.fa``` saved in ```11_barrnap``` directory in the ```output_directory``` will contain the 16S sequence
