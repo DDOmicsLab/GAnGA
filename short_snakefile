@@ -722,10 +722,12 @@ rule mlst:
         extra="--minscore 90"
     log:
         os.path.join(data_dir,"{sample}/logs/{sample}_mlst.log"),
+    conda:
+        "envs/mlst.yaml"
     threads:
         40
-    wrapper:
-        "v3.8.0/bio/mlst"
+    shell:
+        "mlst {params.extra} {input.assembly} > {output}"
 
 
 rule CRISPRcasIdentifier:
