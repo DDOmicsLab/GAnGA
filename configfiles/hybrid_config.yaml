@@ -8,11 +8,11 @@ parameters:
     quality: "10"
     min_length: "500"
   Flye: 
-    options: "-t 80"
-    sequencing_type: "--nano-corr" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
+    options: "-t 8"
+    sequencing_type: "" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
   Pilon: 
-    options: "-t 80"
-    memory: "160G"
+    options: "-t 8"
+    memory: "8G"
     sequencer: "nanopore" #nanopore or pacbio 
   checkm:
     options: ""
