@@ -79,83 +79,11 @@ sudo apt-get update && sudo apt-get install -y texlive-full pandoc
 # Conda-based install
 conda install -c conda-forge pkg-config
 ```
-</details>
 
-<details>
-<summary><strong>macOS (Homebrew)</strong></summary>
-
-```bash
-# Install Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install packages
-brew install python@3.12 cmake gcc pcre2 xz bzip2 curl cairo libtiff readline libxml2 harfbuzz fribidi gsl gmp mpc udunits gdal imagemagick libjpeg libpng freetype pkg-config
-
-# Conda-based install
-conda install -c conda-forge pkg-config
-```
-
-</details>
-
-<details>
-<summary><strong>RedHat / CentOS / Fedora</strong></summary>
-
-```bash
-# Enable EPEL and install development tools
-sudo dnf install epel-release
-sudo dnf groupinstall "Development Tools"
-
-# Install required packages
-sudo dnf install python3-pip cmake gcc-gfortran gcc-objc gnustep gnustep-make bzip2-devel xz-devel pcre2-devel libcurl-devel cairo-devel libtiff-devel readline-devel libxml2-devel harfbuzz-devel fribidi-devel glpk-devel gsl-devel gmp-devel libmpc-devel udunits2-devel gdal-devel ImageMagick-c++-devel freetype-devel libpng-devel libjpeg-devel
-
-# Conda-based install
-conda install -c conda-forge pkg-config
-```
-
-</details>
-
-<details>
-<summary><strong>openSUSE</strong></summary>
-
-```bash
-sudo zypper refresh
-sudo zypper install python3-pip gcc-fortran gcc-objc cmake gnustep gnustep-make libbz2-devel xz-devel libpcre2-devel libcurl-devel cairo-devel libtiff-devel readline-devel libxml2-devel harfbuzz-devel fribidi-devel glpk-devel gsl-devel gmp-devel libmpc-devel libudunits2-devel gdal-devel ImageMagick-c++-devel freetype-devel libpng-devel libjpeg-devel
-
-# Conda-based install
-conda install -c conda-forge pkg-config
-```
-
-</details>
-
-<details>
-<summary><strong>Windows (PowerShell)</strong></summary>
-
-```powershell
-# Install Chocolatey (run in Administrator PowerShell)
-Set-ExecutionPolicy Bypass -Scope Process -Force
-[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-# Install tools
-choco install python cmake mingw imagemagick -y
-
-# Conda-based install
-conda install -c conda-forge pkg-config
-
-# Update pip and setuptools
-python -m pip install --upgrade pip setuptools wheel
-```
-
-```
-> For full C/C++ support, you may also need to install Microsoft Build Tools.
-
-> For full C/C++ support, you may also need to install Microsoft Build Tools.
-```
-</details>
 
 ## Installation 
 ### 1. Download the repository
-Download the repository in the location where you have atleast 50 GB of disk space
+Download the repository in the location where you have atleast 130 GB of disk space
 ```
 git clone https://github.com/DDOmicsLab/GAnGA.git
 cd GAnGA
@@ -213,7 +141,7 @@ If you already know the reference genome — _VOILÀ_! — you can move directly
 But if you don’t, no worries — we’ve got you covered! Follow the steps below to identify your reference genome.
 
 ### Finding the reference genome
-#### 1. Set the output directory and add genome information in ```16S_config.yaml file```
+#### 1. Set the output directory and add genome information in ```16S_config.yaml file``` file present in the ```configfiles``` directory
 Example:
 ```
 #Directory where the output is expected
@@ -230,6 +158,7 @@ Note: Make sure that your environment is activated
 ```conda activate ganga```
 ```
 cd path/to/installation/directory/GAnGA
+mv snakefiles/16S_snakefile configfiles/16S_configfile ./
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 ```
 ```{genome}_rrna.fa``` saved in ```11_barrnap``` directory in the ```output_directory``` will contain the 16S sequence
@@ -242,7 +171,7 @@ Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.
 ### Execution
 Tip: You can add the --dry-run flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
 ### Short Reads
-#### 1. Set the output directory and add genome information in ```short_config.yaml```
+#### 1. Set the output directory and add genome information in ```short_config.yaml``` file present in the ```configfiles``` directory
 Example:
 ```
 #Directory where the output is expected
@@ -262,11 +191,13 @@ samples:
 
 #### 2. Run the pipeline
 ```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/short_snakefile configfiles/short_configfile ./
 snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 8
 ```
 
 ### Long reads 
-#### 1. Set the output directory and add genome information in ```long_config.yaml```
+#### 1. Set the output directory and add genome information in ```long_config.yaml``` file present in the ```configfiles``` directory
 Example:
 ```
 #Directory where the output is expected
@@ -283,11 +214,13 @@ samples:
 ```
 #### 2. Run the pipeline
 ```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/long_snakefile configfiles/long_configfile ./
 snakemake -s long_snakefile --configfile long_config.yaml --use-conda --cores 8
 ```
 
 ### Hybrid reads
-#### 1. Set the output directory and add genome information in ```hybrid_config.yaml```
+#### 1. Set the output directory and add genome information in ```hybrid_config.yaml``` file present in the ```configfiles``` directory
 Example:
 ```
 #Directory where the output is expected
@@ -306,6 +239,8 @@ samples:
 ```
 #### 2. Run the pipeline
 ```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/hybrid_snakefile configfiles/hybrid_configfile ./
 snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --cores 8
 ```
 
