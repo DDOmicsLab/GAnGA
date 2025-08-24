@@ -17,7 +17,7 @@ The pipeline performs:
 It produces a comprehensive, human-readable **HTML report** summarizing all results.
 
 ## System Requirements
-- Atleast 50 Gb disk space where you are installing GAnGA
+- Atleast 130 Gb disk space where you are installing GAnGA
 - Minimum 16 Gb memory
 - Minimum 8 cores
 - Uninterupted internet is difficult to get but you have it you will be though in no time! (>50 mbps speed)
