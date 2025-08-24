@@ -1,0 +1,52 @@
+# config.yaml
+#Set parameters or options for the whole run
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  fastqc: ""
+  Trimmomatic: " SLIDINGWINDOW:4:15 MINLEN:36 "
+  Unicycler: "--min_fasta_length 1000"
+  checkm:
+    options: ""
+  quast: ""
+  fastANI: ""
+  RagTag:
+    options: ""
+  Pilon: 
+    memory: "8G"
+  Barrnap: ""
+  RGI: "--local --clean --include_loose"
+  Bakta:
+    options: "--min-contig-length 200 --compliant --force"
+  Phigaro: "--save-fasta -d"
+  mobileog:
+    options: "-k 15 -e 1e-20 -p 90 -q 90"
+  crispr:
+    options: "-st dna -sc partial"
+  genovi:
+    COGs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    options: "-cs paradise -bc white "
+
+#Directory where the output is expected
+outdir: "/mnt/8tbNew/GAnGA/short_test_results"
+
+
+#list all the samples with their information (Mention the global paths of R1, R2 and reference_fasta)
+samples:
+  B_longum:
+    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/raw/SRR13205517_1.fastq.gz"
+    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/raw/SRR13205517_2.fastq.gz"
+    genus: "Bifidobacterium"
+    species: "longum"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/Bifidobacterium_longum_subsp_longum_JCM_1217_reference.fasta"
+  E_coli:
+    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/raw/SRR1770413_1.fastq.gz"
+    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/raw/SRR1770413_2.fastq.gz"
+    genus: "Escherichia"
+    species: "coli"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/E_coli_K12_ref.fasta"
+  K_pneumoniae:
+    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/raw/SRR4046827_1.fastq.gz"
+    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/raw/SRR4046827_2.fastq.gz"
+    genus: "Klebsiella"
+    species: "pneumoniae"
+    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/K_pneumoniae_ref.fasta"
