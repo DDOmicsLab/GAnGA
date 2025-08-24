@@ -27,26 +27,15 @@ parameters:
     options: "-cs paradise -bc white "
 
 #Directory where the output is expected
-outdir: "/mnt/8tbNew/GAnGA/short_test_results"
+outdir: ""
 
 
 #list all the samples with their information (Mention the global paths of R1, R2 and reference_fasta)
 samples:
-  B_longum:
-    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/raw/SRR13205517_1.fastq.gz"
-    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/raw/SRR13205517_2.fastq.gz"
-    genus: "Bifidobacterium"
-    species: "longum"
-    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/B_longum/Bifidobacterium_longum_subsp_longum_JCM_1217_reference.fasta"
-  E_coli:
-    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/raw/SRR1770413_1.fastq.gz"
-    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/raw/SRR1770413_2.fastq.gz"
-    genus: "Escherichia"
-    species: "coli"
-    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/E_coli/E_coli_K12_ref.fasta"
-  K_pneumoniae:
-    R1: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/raw/SRR4046827_1.fastq.gz"
-    R2: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/raw/SRR4046827_2.fastq.gz"
-    genus: "Klebsiella"
-    species: "pneumoniae"
-    reference_fasta: "/mnt/analysis/harshada/atharva/Benchmark_genomes/K_pneumoniae/K_pneumoniae_ref.fasta"
+  Genome_1:
+    R1: ""
+    R2: ""
+    genus: ""
+    species: ""
+    reference_fasta: ""
+
