@@ -33,29 +33,16 @@ parameters:
 
 
 #Directory where the output is expected
-outdir: "/mnt/8tbNew/ganga/test_run/hybrid_results"
+outdir: ""
 
 #list all the samples with their information
 samples:
-  B_longum:
-    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/shortreads/SRR13280501_1.fastq.gz"
-    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/shortreads/SRR13280501_2.fastq.gz"
-    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/longreads/SRR24651278_1.fastq.gz"
-    genus: "Bifidobacterium"
-    species: "longum"
-    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/B_longum/reference/Bifidobacterium_longum_subsp_longum_JCM_1217_reference.fasta"
-  K_pneumoniae:
-    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/shortreads/SRR4046827_1.fastq.gz"
-    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/shortreads/SRR4046827_2.fastq.gz"
-    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/longreads/SRR33323135.fastq.gz"
-    genus: "Klebsiella"
-    species: "pneumoniae"
-    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/K_pneumoniae/reference/K_pneumoniae_ref.fasta"
-  E_coli:
-    R1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/shortreads/SRR1770413_1.fastq.gz"
-    R2: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/shortreads/SRR1770413_2.fastq.gz"
-    L1: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/longreads/SRR33397843.fastq.gz"
-    genus: "Escherichia"
-    species: "coli"
-    reference_fasta: "/home/ddlab3w1/softwares/short_reads_pipeline-master/hybrid_reads_pipeline/hybrid_samples/E_coli/reference/E_coli_K12_ref.fasta"
+  Genome_1:
+    R1: ""
+    R2: ""
+    L1: ""
+    genus: ""
+    species: ""
+    reference_fasta: ""
+
 
