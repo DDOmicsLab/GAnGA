@@ -62,8 +62,8 @@ conda update -n base -c conda-forge conda -y
 ```
 
 ###  Install System Dependencies (for R and Bioinformatics Tools)
-<details>
-<summary><strong>Ubuntu / Debian</strong></summary>
+
+### Ubuntu / Debian
 
 ```bash
 # Install system dependencies
@@ -79,7 +79,6 @@ sudo apt-get update && sudo apt-get install -y texlive-full pandoc
 # Conda-based install
 conda install -c conda-forge pkg-config
 ```
-
 
 ## Installation 
 ### 1. Download the repository
