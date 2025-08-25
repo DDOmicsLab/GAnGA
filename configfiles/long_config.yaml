@@ -5,7 +5,6 @@ parameters:
   Chopper:
     quality: "7"
     min_length: "1000"
-#Filtlong: ""
   Flye: 
     options: "-t 8"
     sequencing_type: "" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
