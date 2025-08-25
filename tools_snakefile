@@ -15,7 +15,7 @@ rule all:
                 os.path.join(current_directory, "flags/r_packages.done"),
 
                 expand("flags/{name}.done",
-                    name=["chopper", "ezaai", "fastani", "flye", "genovi", "quarto", "racon", "ragtag", "trimmomatic", "unicycler", "mlst_wrapper"]),
+                    name=["chopper", "ezaai", "fastani", "flye", "genovi", "quarto", "racon", "ragtag", "trimmomatic", "unicycler", "mlst"]),
 
 
 rule chopper_env:
@@ -68,9 +68,9 @@ rule unicycler_env:
     conda:  "envs/unicycler.yaml"
     shell:  "touch {output}"
 
-rule mlst_wrapper_env:
-    output: touch("flags/mlst_wrapper.done")
-    conda:  "https://github.com/snakemake/snakemake-wrappers/raw/v3.8.0/bio/mlst/environment.yaml"
+rule mlst_env:
+    output: touch("flags/mlst.done")
+    conda:  "envs/mlst.yaml"
     shell:  "touch {output}"
 
  
