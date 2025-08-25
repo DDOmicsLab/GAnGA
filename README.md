@@ -157,7 +157,7 @@ Note: Make sure that your environment is activated
 ```conda activate ganga```
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/16S_snakefile configfiles/16S_configfile ./
+mv snakefiles/16S_snakefile configfiles/16S_config.yaml ./
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 ```
 ```{genome}_rrna.fa``` saved in ```11_barrnap``` directory in the ```output_directory``` will contain the 16S sequence
@@ -191,7 +191,7 @@ samples:
 #### 2. Run the pipeline
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/short_snakefile configfiles/short_configfile ./
+mv snakefiles/short_snakefile configfiles/short_config.yaml ./
 snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 8
 ```
 
@@ -214,7 +214,7 @@ samples:
 #### 2. Run the pipeline
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/long_snakefile configfiles/long_configfile ./
+mv snakefiles/long_snakefile configfiles/long_config.yaml ./
 snakemake -s long_snakefile --configfile long_config.yaml --use-conda --cores 8
 ```
 
@@ -239,7 +239,7 @@ samples:
 #### 2. Run the pipeline
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/hybrid_snakefile configfiles/hybrid_configfile ./
+mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
 snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --cores 8
 ```
 
