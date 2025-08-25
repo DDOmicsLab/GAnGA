@@ -11,7 +11,7 @@ parameters:
     sequencing_type: "" #enter your sequencing type for e.g. --nano-raw, --nano-corr, --pacbio-raw, etc. Refer to https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md for more details
   Minimap2:
     options: "-t 8"
-    ax: "map-ont" #enter map-ont or map-pb based on the sequencing platform used (map-ont for Oxford-Nanopore and map-pb for Pacific Biosciences)
+    ax: "" #enter map-ont or map-pb based on the sequencing platform used (map-ont for Oxford-Nanopore and map-pb for Pacific Biosciences)
   Racon: 
     options: "-t 8"
   checkm:
