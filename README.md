@@ -196,7 +196,29 @@ snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 
 ```
 
 ### Long reads 
-#### 1. Set the output directory and add genome information in ```long_config.yaml``` file present in the ```configfiles``` directory
+#### 1. Mandatory Configuration Before Running the Pipeline
+In the config.yaml, you must specify the ```sequencing type``` for Flye and the ```ax``` preset for Minimap2.
+If these are not set correctly, the pipeline execution will fail.
+Example:
+```
+  Flye: 
+    options: "-t 8"
+    sequencing_type: ""# REQUIRED: set sequencing type
+                       # Options:
+                       #   --nano-raw   : raw Oxford Nanopore reads
+                       #   --nano-corr  : corrected Nanopore reads
+                       #   --pacbio-raw : raw PacBio reads
+                       #   --pacbio-corr: corrected PacBio reads
+                       #
+                       # Refer to Flye documentation for more details for raw and corrected reads:
+                       # https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md
+  Minimap2:
+    options: "-t 8"
+    ax: ""# REQUIRED: set preset depending on sequencing platform
+          #   map-ont : for Oxford Nanopore
+          #   map-pb  : for PacBio
+```
+#### 2. Set the output directory and add genome information in ```long_config.yaml``` file present in the ```configfiles``` directory
 Example:
 ```
 #Directory where the output is expected
@@ -211,7 +233,7 @@ samples:
     reference_fasta: "/path/to/ref/reference.fasta"
 
 ```
-#### 2. Run the pipeline
+#### 3. Run the pipeline
 ```
 cd path/to/installation/directory/GAnGA
 mv snakefiles/long_snakefile configfiles/long_config.yaml ./
