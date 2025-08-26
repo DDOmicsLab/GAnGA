@@ -30,6 +30,8 @@ parameters:
   genovi:
     COGs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     options: "-cs paradise -bc white "
+  antismash: 
+    options: "--fullhmmer --clusterhmmer --tigrfam --asf --cc-mibig --cb-general --cb-subclusters --cb-knownclusters --pfam2go --rre --smcog-trees --tfbs"
 
 
 #Directory where the output is expected
