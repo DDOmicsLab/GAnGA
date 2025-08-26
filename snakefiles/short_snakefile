@@ -791,7 +791,8 @@ rule Antismash:
         os.path.join(data_dir, "{sample}/19_antismash/index.html"),
     params:
         outdir=os.path.join(data_dir,"{sample}/19_antismash"),
-        sample_name="{sample}"
+        sample_name="{sample}",
+        options=lambda wildcards:config["parameters"]["antismash"]["options"],
     log:
         os.path.join(data_dir,"{sample}/logs/antismash.log")
     threads:
@@ -800,7 +801,7 @@ rule Antismash:
         "envs/antismash.yaml"
     shell:
         """
-        antismash -t bacteria --output-dir {params.outdir} --output-basename {params.sample_name} --genefinding-tool none {input.bakta_gbff} --fullhmmer --clusterhmmer --tigrfam --asf --cc-mibig --cb-general --cb-subclusters --cb-knownclusters --pfam2go --rre --smcog-trees --tfbs
+        antismash -t bacteria --output-dir {params.outdir} --output-basename {params.sample_name} --genefinding-tool none {input.bakta_gbff} {params.options} &> {log}
         """
 
 rule create_absolute_paths:
