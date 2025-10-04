@@ -50,10 +50,10 @@ conda config --show channels
 ```
 If the order is incorrect, re-add them starting from ```https://repo.anaconda.com/pkgs/r``` and add up to ```conda-forge``` last.
 
-If the terms of service have not been accepted for any channel, they should be accepted before proceeding. To accept a channel's Terms of Service, run the following and replace `CHANNEL` with the channel name/URL:
+If the terms of service have not been accepted for any channel, they should be accepted before proceeding. To accept Terms of Service of Anaconda's ```main``` and ```r``` channels , run the following commands:
 ```
-conda tos accept --override-channels --channel CHANNEL
-Example: conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/r
 ```
 
 ###  Update Conda
