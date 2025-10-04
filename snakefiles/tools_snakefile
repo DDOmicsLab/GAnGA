@@ -1,0 +1,350 @@
+current_directory = os.getcwd()
+tools_dir = config["parameters"]["path_to_tools_dir"]
+
+rule all:
+    input: 
+                os.path.join(current_directory, "flags/rgi.done"),
+                os.path.join(current_directory, "flags/mobileogdb.done"),
+                os.path.join(current_directory, "flags/crispr.done"),
+                os.path.join(current_directory, "flags/pocp.done"),
+                os.path.join(current_directory, "flags/minimap2.done"),
+                os.path.join(current_directory, "flags/r_packages.done"),
+
+
+rule RGI_setup:
+    input:
+
+    output:
+        (os.path.join(current_directory, "flags/rgi.done"))
+    conda:
+        "envs/probiopred.yaml"
+    params:
+        tools_dir=lambda wildcards:config["parameters"]["path_to_tools_dir"],
+        cd=current_directory,
+    threads:
+        20
+    shell:
+        """
+        mkdir -p {params.tools_dir}/ganga_tools/
+	    cd {params.tools_dir}/ganga_tools/
+        if [ ! -d "rgi" ]; then
+            git clone https://github.com/arpcard/rgi.git
+
+        fi
+            cd rgi
+            pip3 install .
+            rgi auto_load
+            cd {params.tools_dir}/ganga_tools/
+
+        if [ ! -f "localDB/card.json" ]; then
+            wget https://card.mcmaster.ca/latest/data
+	        tar -xvf data ./card.json
+            rgi load --card_json ./card.json --local
+        fi
+
+        if ! ls card_database_*_all.fasta >/dev/null 2>&1; then
+            echo "❌ ERROR: Missing card_database_*_all.fasta files." >&2
+            exit 1
+        fi
+        if ! ls card_database_*.fasta >/dev/null 2>&1; then
+            echo "❌ ERROR: Missing card_database_*.fasta files." >&2
+            exit 1
+        fi
+
+        # Check for rgi_autoload_* directories
+        if ! ls -d rgi_autoload_* >/dev/null 2>&1; then
+            echo "❌ ERROR: No rgi_autoload_* directory found." >&2
+            exit 1
+        fi
+
+        # Validate structure inside rgi_autoload_*
+        for d in rgi_autoload_*; do
+            if [ ! -d "$d/card_data" ] || [ ! -d "$d/card_variants" ]; then
+                echo "❌ ERROR: Missing required subdirectories in $d" >&2
+                exit 1
+            fi
+            if [ ! -f "$d/data" ] || [ ! -f "$d/variants" ]; then
+                echo "❌ ERROR: Missing required files (data, variants) in $d" >&2
+                exit 1
+            fi
+        done
+
+	    cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule mobileOG_db_install:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/mobileogdb.done")
+    conda:
+        "envs/mobileOg.yaml"
+    params:
+        cd=current_directory,
+        mobileog_db_download_path=lambda wildcards:config["parameters"]["mobileog_db_download_path"],
+        mobileOg=os.path.join(tools_dir, "ganga_tools/mobileOg"),
+	    shellscript=os.path.join(tools_dir, "ganga_tools/mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
+        tools_dir=lambda wildcards:config["parameters"]["path_to_tools_dir"],
+        sha256_main="617a71da0dd3bf225c163b7a4d7f7099d107fa57d79a0979013e63044957e32f",
+        sha256_csv="ee392e6c809e82b55faad09df0d5966fdb6d55540586f5367c3d970b77fa6b3f",
+        sha256_faa="a6692f4d835355239643eb2592fe4c02c2a7824f9bcd14df3e0a50ec97dd74b4"
+    threads:
+        20
+    shell:
+        """
+        echo "🚀 Setting up MobileOG DB..."
+        mkdir -p {params.tools_dir}/ganga_tools
+        cd {params.tools_dir}/ganga_tools
+
+        mobileog_db_dir="{params.mobileOg}/mobileOG-db-main"
+
+
+        files_to_check=(
+            "$mobileog_db_dir/mobileog_db.csv:{params.sha256_csv}"
+            "$mobileog_db_dir/mobileog_db.faa:{params.sha256_faa}"
+        )
+
+        need_setup=false
+
+
+        for entry in "${{files_to_check[@]}}"; do
+            file="${{entry%%:*}}"
+            checksum="${{entry##*:}}"
+
+            if [ ! -f "$file" ]; then
+                echo "⚠️ Missing: $(basename "$file")"
+                need_setup=true
+            else
+                echo "$checksum  $file" | sha256sum -c - >/dev/null 2>&1 || {{
+                    echo "⚠️ Corrupted: $(basename "$file"), will redownload"
+                    need_setup=true
+                }}
+            fi
+        done
+
+        if [ "$need_setup" = true ]; then
+            echo "📦 Downloading MobileOG DB..."
+            rm -rf "$mobileog_db_dir"
+            mkdir -p {params.mobileOg}
+            cd {params.mobileOg}
+
+            # Download main.zip and verify checksum
+            wget -O main.zip https://github.com/clb21565/mobileOG-db/archive/refs/heads/main.zip
+            echo "{params.sha256_main}  main.zip" | sha256sum -c - || {{
+                echo "❌ Checksum failed for main.zip"
+                exit 1
+            }}
+
+            unzip main.zip
+            cd mobileOG-db-main/
+
+            # Add execute permission
+            chmod +x {params.shellscript}
+
+            # Use provided DB files (csv & faa)
+            cp {params.mobileog_db_download_path} files.zip
+            unzip -o files.zip
+            mv *csv mobileog_db.csv
+            mv *faa mobileog_db.faa
+
+            # Build diamond database
+            diamond makedb --in mobileog_db.faa -d mobileog_db.dmnd
+
+            # Final checksum verification
+            echo "{params.sha256_csv}  mobileog_db.csv" | sha256sum -c - || {{
+                echo "❌ Checksum failed for mobileog_db.csv"
+                exit 1
+            }}
+            echo "{params.sha256_faa}  mobileog_db.faa" | sha256sum -c - || {{
+                echo "❌ Checksum failed for mobileog_db.faa"
+                exit 1
+            }}
+        else
+            echo "✅ MobileOG DB already set up and verified."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule CRISPRcasIdentifier_setup:
+    input:
+
+    output:
+        flag=os.path.join(current_directory, "flags/crispr.done")
+    params:
+        cd=current_directory,
+        tools_dir=lambda wildcards:config["parameters"]["path_to_tools_dir"],
+        sha256_v11="b8677576fd60e0a9862ff6d143626105f634edebe433f6421e7efa269dd241bb",
+        sha256_hmm_sets="1fa356d92c949e83281ff2af8b821b6d0fdfc42a75cbe775c81fd92d3ae0e0b6",
+        sha256_trained_models="8867d714ac44de0537e6799c1c7228f9ec1a3f3106fec04d5d9bf1333e7c7888"
+    conda:
+        "envs/crispr.yaml"
+    threads:
+        20
+    shell:
+        """
+        echo "🚀 Setting up CRISPRcasIdentifier..."
+        mkdir -p {params.tools_dir}/ganga_tools/
+        cd {params.tools_dir}/ganga_tools/
+        mkdir -p crispr
+
+        CRISPR_DIR="crispr/CRISPRcasIdentifier-1.1.0"
+
+
+        files_to_check=(
+            "crispr/v1.1.0.tar.gz:{params.sha256_v11}"
+            "$CRISPR_DIR/HMM_sets.tar.gz:{params.sha256_hmm_sets}"
+            "$CRISPR_DIR/trained_models.tar.gz:{params.sha256_trained_models}"
+        )
+
+        need_setup=false
+
+
+        for entry in "${{files_to_check[@]}}"; do
+            file="${{entry%%:*}}"
+            checksum="${{entry##*:}}"
+
+            if [ ! -f "$file" ]; then
+                echo "⚠️ Missing: $(basename "$file")"
+                need_setup=true
+            else
+                echo "$checksum  $file" | sha256sum -c - >/dev/null 2>&1 || {{
+                    echo "⚠️ Corrupted: $(basename "$file"), will redownload"
+                    need_setup=true
+                }}
+            fi
+        done
+
+        if [ "$need_setup" = true ]; then
+            echo "📦 Downloading CRISPRcasIdentifier v1.1.0..."
+            rm -rf "$CRISPR_DIR"
+
+            cd crispr
+
+            wget -O v1.1.0.tar.gz https://github.com/BackofenLab/CRISPRcasIdentifier/archive/v1.1.0.tar.gz
+            echo "{params.sha256_v11}  v1.1.0.tar.gz" | sha256sum -c - || {{
+                echo "❌ Checksum failed for v1.1.0.tar.gz"
+                exit 1
+            }}
+            tar -xzf v1.1.0.tar.gz
+
+            echo "⬇️ Downloading HMM sets and trained models..."
+            gdown --fuzzy https://drive.google.com/file/d/1YbTxkn9KuJP2D7U1-6kL1Yimu_4RqSl1/view?usp=sharing
+            mv HMM_sets.tar.gz CRISPRcasIdentifier-1.1.0/HMM_sets.tar.gz
+            echo "{params.sha256_hmm_sets}  CRISPRcasIdentifier-1.1.0/HMM_sets.tar.gz" | sha256sum -c - || {{
+                echo "❌ Checksum failed for HMM_sets.tar.gz"
+                exit 1
+            }}
+
+            gdown --fuzzy https://drive.google.com/file/d/1Nc5o6QVB6QxMxpQjmLQcbwQwkRLk-thM/view?usp=sharing
+            mv trained_models.tar.gz CRISPRcasIdentifier-1.1.0/trained_models.tar.gz
+            echo "{params.sha256_trained_models}  CRISPRcasIdentifier-1.1.0/trained_models.tar.gz" | sha256sum -c - || {{
+                echo "❌ Checksum failed for trained_models.tar.gz"
+                exit 1
+            }}
+
+            echo "✅ CRISPRcasIdentifier setup complete."
+        else
+            echo "✅ CRISPRcasIdentifier already exists and verified."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule r_setup:
+    input:
+        script="scripts/install_packages.R"
+    output:
+        os.path.join(current_directory, "flags/r_packages.done")
+    shell:
+        """
+        echo " Checking and installing R packages..."
+
+        if [ -f {output} ]; then
+            echo "✅ R packages are already set up. Skipping installation."
+        else
+            echo "⬇️  Installing R packages using install_r_packages.R..."
+            Rscript {input.script}
+
+            if [ $? -eq 0 ]; then
+                echo "✅ R packages installed successfully."
+                touch {output}
+            else
+                echo "❌ Failed to install R packages."
+                exit 1
+            fi
+        fi
+
+        echo "[✔] R setup complete."
+        """
+
+
+rule POCP_setup:
+    output:
+        os.path.join(current_directory, "flags/pocp.done")
+    params:
+        tools_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        cd=current_directory
+    conda:
+        "envs/pocp.yaml"  
+    shell:
+        """
+        echo " Cloning POCP..."
+
+        mkdir -p {params.tools_dir}/ganga_tools/
+        cd {params.tools_dir}/ganga_tools/
+
+        if [ ! -d "pocp" ]; then
+            git clone https://github.com/hoelzer/pocp.git pocp
+        else
+            echo "✅ POCP already cloned. Skipping."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+rule Minimap2_setup:
+    output:
+        os.path.join(current_directory, "flags/minimap2.done")
+    params:
+        tools_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        cd=current_directory,
+        sha256="56e910107685c2448c5b673e094098bfdf70472bfa46f0b38c617edb8438e0dd"
+    shell:
+        """
+        echo " Setting up Minimap2..."
+
+        mkdir -p {params.tools_dir}/ganga_tools
+        cd {params.tools_dir}/ganga_tools
+
+        if [ ! -d "minimap2" ]; then
+            mkdir minimap2
+            cd minimap2
+
+            echo "Downloading Minimap2 v2.28..."
+            curl -LO https://github.com/lh3/minimap2/releases/download/v2.28/minimap2-2.28_x64-linux.tar.bz2
+
+            echo "Extracting Minimap2..."
+            tar -xvjf minimap2-2.28_x64-linux.tar.bz2
+
+            echo "Moving binary to tools directory..."
+            mv minimap2-2.28_x64-linux/minimap2 .
+
+            echo "Cleaning up..."
+            rm -rf minimap2-2.28_x64-linux*
+
+            cd {params.cd}
+        else
+            echo "✅ Minimap2 is already installed. Skipping."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """

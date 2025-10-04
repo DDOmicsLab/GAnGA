@@ -59,12 +59,12 @@ Statistics of forward raw reads:
 
 ```{r pretrim_stats_for, echo=FALSE, message=FALSE, warning=FALSE}
 subdirs <- list.dirs(pretrim_qc.dir, full.names = TRUE, recursive = FALSE)
-fastqc_path <- file.path(subdirs[grepl("_1_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_path <- file.path(subdirs[grepl("_R1_\\d+_fastqc$", subdirs)], "fastqc_data.txt")
 fastqc_lines <- readLines(fastqc_path)
 cat(fastqc_lines[7], "\n")
 cat(fastqc_lines[8], "\n")
 
-summary_path <- file.path(subdirs[grepl("_1_fastqc$", subdirs)], "summary.txt")
+summary_path <- file.path(subdirs[grepl("_R1_\\d+_fastqc$", subdirs)], "summary.txt")
 summary_lines <- readLines(summary_path)
 
 # Function to swap the first two columns
@@ -82,12 +82,12 @@ Statistics of reverse raw reads:
 
 ```{r pretrim_stats_rev, echo=FALSE, message=FALSE, warning=FALSE}
 subdirs <- list.dirs(pretrim_qc.dir, full.names = TRUE, recursive = FALSE)
-fastqc_path <- file.path(subdirs[grepl("_2_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_path <- file.path(subdirs[grepl("_R2_\\d+_fastqc$", subdirs)], "fastqc_data.txt")
 fastqc_lines <- readLines(fastqc_path)
 cat(fastqc_lines[7], "\n")
 cat(fastqc_lines[8], "\n")
 
-summary_path <- file.path(subdirs[grepl("_2_fastqc$", subdirs)], "summary.txt")
+summary_path <- file.path(subdirs[grepl("_R2_\\d+_fastqc$", subdirs)], "summary.txt")
 summary_lines <- readLines(summary_path)
 
 # Function to swap the first two columns

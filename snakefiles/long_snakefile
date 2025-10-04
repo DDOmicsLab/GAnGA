@@ -1,8 +1,8 @@
 import os
 data_dir = config["outdir"] 
 current_directory = os.getcwd()
-db_dir = os.path.join(current_directory,"databases")
-tools_dir = os.path.join(current_directory,"tools")
+db_dir = config["path_to_db_dir"]
+tools_dir = config["path_to_tools_dir"]
 rule all:  # type: ignore
     input:
         expand(  # type: ignore
@@ -154,6 +154,7 @@ rule Racon:
     output:
         assembly=os.path.join(data_dir, "{sample}/03_racon/polish.fasta"),
         final=os.path.join(data_dir, "{sample}/03_racon/{sample}_final.fasta"),
+        mobile_fasta=os.path.join(data_dir, "{sample}/13_mobileog/{sample}_final.fasta"),
     params:
         outdir=os.path.join(data_dir, "{sample}/03_racon"),
         options=lambda wildcards:config["parameters"]["Racon"]["options"],
@@ -180,6 +181,7 @@ rule Racon:
         done < {output.final}
         rm {output.final}
         mv {params.temp_fasta} {output.final}
+        cp {output.final} {output.mobile_fasta}
         """
 
 
@@ -198,7 +200,7 @@ rule CheckM_post_assembly:
     params:
         assembly_dir=os.path.join(data_dir, "{sample}/01_flye/"),
         outdir=os.path.join(data_dir,"{sample}/04_checkm/post_assembly"),
-        db_path=os.path.join(db_dir,"checkm"),
+        db_path=os.path.join(db_dir,"ganga_databases","checkm"),
         options=lambda wildcards:config["parameters"]["checkm"]["options"],
     log:
         os.path.join(data_dir,"{sample}/logs/checkm_post_assembly.log")
@@ -230,7 +232,7 @@ rule CheckM_post_polish:
     params:
         assembly_dir=os.path.join(data_dir, "{sample}/03_racon/"),
         outdir=os.path.join(data_dir,"{sample}/04_checkm/post_polish"),
-        db_path=os.path.join(db_dir,"checkm"),
+        db_path=os.path.join(db_dir,"ganga_databases","checkm"),
         options=lambda wildcards:config["parameters"]["checkm"]["options"],
     log:
         os.path.join(data_dir,"{sample}/logs/checkm_post_polish.log")
@@ -373,7 +375,7 @@ rule Bakta:
         genus=lambda wildcards:config["samples"][wildcards.sample]["genus"],
         species=lambda wildcards:config["samples"][wildcards.sample]["species"],
         outdir=os.path.join(data_dir, "{sample}/08_bakta"),
-        db_path=os.path.join(db_dir,"bakta_db/db"),
+        db_path=os.path.join(db_dir,"ganga_databases","bakta_db/db"),
         options=lambda wildcards:config["parameters"]["Bakta"]["options"],
     log:
         os.path.join(data_dir,"{sample}/logs/bakta.log")
@@ -415,8 +417,8 @@ rule RGI:
     params:
         prefix=os.path.join(data_dir, "{sample}/10_rgi/{sample}_rgi"),
         options=lambda wildcards:config["parameters"]["RGI"],
-	tools_dir=tools_dir,
-	cd=current_directory
+	    tools_dir=os.path.join(tools_dir, "ganga_tools"),
+	    cd=current_directory
     log:
         os.path.join(data_dir,"{sample}/logs/rgi.log")
     threads:
@@ -448,15 +450,17 @@ rule Phigaro:
     params:
         outdir=os.path.join(data_dir, "{sample}/11_phigaro/"),
         options=lambda wildcards:config["parameters"]["Phigaro"],
+        config=os.path.join(db_dir,"ganga_databases/phigaro/config.yml"),
     log:
         os.path.join(data_dir,"{sample}/logs/phigaro.log")
     threads:
         20
     shell:
-        """
-               
-        phigaro -o {params.outdir} -f {input.assembly} {params.options} -e tsv html --not-open -t {threads} &> {log}
-	"""
+        """ 
+        cd {db_dir}/ganga_databases/phigaro
+        phigaro -o {params.outdir} -c {params.config} -f {input.assembly} {params.options} -e tsv html --not-open -t {threads} &> {log}
+        cd {current_directory}
+	    """
 
 rule EzAAI:
     input:
@@ -491,21 +495,22 @@ rule EzAAI:
 rule mobileOG_db:
     input:
         flag=os.path.join(current_directory, "flags/mobileogdb.done"),
-        assembly=os.path.join(data_dir, "{sample}/03_racon/{sample}_final.fasta"),
+        assembly=os.path.join(data_dir, "{sample}/13_mobileog/{sample}_final.fasta"),
     output:
         alignment_out_csv=os.path.join(data_dir,"{sample}/13_mobileog/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
         summary_csv=os.path.join(data_dir,"{sample}/13_mobileog/{sample}_final.fasta.summary.csv"),
         tsv=os.path.join(data_dir,"{sample}/13_mobileog/{sample}_final.fasta.tsv"),
     params:
         options=lambda wildcards:config["parameters"]["mobileog"]["options"],
-        mobileog_dmnd=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileog_db.dmnd"),
-        mobileog_csv=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileog_db.csv"),
-        shellscript=os.path.join(tools_dir,"mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
+        mobileog_dmnd=os.path.join(tools_dir,"ganga_tools/mobileOg/mobileOG-db-main/mobileog_db.dmnd"),
+        mobileog_csv=os.path.join(tools_dir,"ganga_tools/mobileOg/mobileOG-db-main/mobileog_db.csv"),
+        shellscript=os.path.join(tools_dir,"ganga_tools/mobileOg/mobileOG-db-main/mobileOG-pl/mobileOGs-pl-kyanite.sh"),
         outdir=os.path.join(data_dir,"{sample}/13_mobileog/"),
         premoved_alignment_out_csv=os.path.join(data_dir,"{sample}/03_racon/{sample}_final.fasta.mobileOG.Alignment.Out.csv"),
         premoved_summary_csv=os.path.join(data_dir,"{sample}/03_racon/{sample}_final.fasta.summary.csv"),
         premoved_tsv=os.path.join(data_dir,"{sample}/03_racon/{sample}_final.fasta.tsv"),
-        cd=current_directory
+        cd=current_directory,
+        tools_dir=tools_dir
     threads:
         20
     conda:
@@ -517,12 +522,13 @@ rule mobileOG_db:
         if [ ! -d "{params.outdir}" ]; then 
         mkdir {params.outdir}
         fi
-        cd tools/mobileOg/mobileOG-db-main/mobileOG-pl
+        cd {params.tools_dir}/ganga_tools
+        cd mobileOg/mobileOG-db-main/mobileOG-pl
         bash {params.shellscript} -i {input.assembly} -d {params.mobileog_dmnd} -m {params.mobileog_csv} {params.options} &> {log}
         cd {params.cd}
-        mv {params.premoved_alignment_out_csv} {output.alignment_out_csv}
-        mv {params.premoved_summary_csv} {output.summary_csv}
-        mv {params.premoved_tsv} {output.tsv}
+        #mv {params.premoved_alignment_out_csv} {output.alignment_out_csv}
+        #mv {params.premoved_summary_csv} {output.summary_csv}
+        #mv {params.premoved_tsv} {output.tsv}
         """
 
 rule Referencereformat:
@@ -565,6 +571,8 @@ rule pocp:
         revision="2.3.0",
         profile=["local", "conda"],
         output=os.path.join(data_dir,"{sample}/06_pocp"),
+        cd=current_directory,
+        tools_dir=tools_dir,
     log:
         os.path.join(data_dir,"{sample}/logs/pocp.log")
     threads:
@@ -573,7 +581,9 @@ rule pocp:
         "envs/pocp.yaml"
     shell:
         """
+        cd {params.tools_dir}/ganga_tools/pocp
         nextflow run hoelzer/pocp -r 2.3.0 --genomes {input.genomes} --genome {input.genome} -profile local,conda --output {params.output} 2> {log} 
+        cd {params.cd}
         """
        
 
@@ -601,6 +611,8 @@ rule GenoVI:
         "envs/genovi.yaml"
     shell:
         """
+        mkdir -p {params.outdir}
+        cd {params.outdir}
         contig_count=$(grep -c '^>' {input.racon})
         if [ "$contig_count" -le 250 ]; then
         genovi -i {input.bakta} -o genovi -s draft --title {params.sample_name} --cogs {params.COGs} {params.options} &> {log}
@@ -669,7 +681,7 @@ rule CRISPRcasIdentifier:
         "envs/crispr.yaml"
     shell:
         """
-        cd {params.tools_dir}
+        cd {params.tools_dir}/ganga_tools
         cd crispr/CRISPRcasIdentifier-1.1.0
         python CRISPRcasIdentifier.py -f {input.assembly} {params.options} -o {output} &> {log}
         cd {params.cd}
@@ -684,7 +696,7 @@ rule Panvita:
     params:
         outdir_path=os.path.join(data_dir,"{sample}/15_panvita/"),
         cd=current_directory,
-        panvita_path=os.path.join(tools_dir,"panvita/panvita.py")
+        panvita_path=os.path.join(db_dir, "ganga_databases", "panvita/panvita.py")
     log:
         os.path.join(data_dir,"{sample}/logs/{sample}_panvita.log"),
     threads:
@@ -711,6 +723,7 @@ rule Antismash:
     params:
         outdir=os.path.join(data_dir,"{sample}/16_antismash"),
         sample_name="{sample}",
+        antismash_db_path=os.path.join(db_dir,"ganga_databases","antismash"),
         options=lambda wildcards:config["parameters"]["antismash"]["options"],
     log:
         os.path.join(data_dir,"{sample}/logs/antismash.log")
@@ -720,7 +733,7 @@ rule Antismash:
         "envs/antismash.yaml"
     shell:
         """
-        antismash -t bacteria --output-dir {params.outdir} --output-basename {params.sample_name} --genefinding-tool none {input.bakta_gbff} {params.options} &> {log}
+        antismash -t bacteria --databases {params.antismash_db_path} --output-dir {params.outdir} --output-basename {params.sample_name} --genefinding-tool none {input.bakta_gbff} {params.options} &> {log}
         """
 
 rule create_absolute_paths:

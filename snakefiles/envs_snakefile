@@ -1,0 +1,108 @@
+current_directory = os.getcwd()
+db_dir = os.path.join(current_directory,"databases")
+tools_dir = os.path.join(current_directory,"tools")
+
+rule all:
+    input: 
+                expand("flags/{name}.done",
+                    name=["chopper_env", "ezaai_env", "fastani_env", "flye_env", "genovi_env", "quarto_env", "racon_env", "ragtag_env", "trimmomatic_env", "unicycler_env", "mlst_env", "checkm_env", "bakta_env", "rgi_env", "phigaro_env", "mobileogdb_env", "crispr_env", "panvita_env", "antismash_env", "pocp_env"]),
+
+rule chopper_env:
+    output: "flags/chopper_env.done"
+    conda: "envs/chopper.yaml"
+    shell: "touch {output}"
+
+rule ezaai_env:
+    output: touch("flags/ezaai_env.done")
+    conda:  "envs/ezaai.yaml"
+    shell:  "touch {output}"
+
+rule fastani_env:
+    output: touch("flags/fastani_env.done")
+    conda:  "envs/fastani.yaml"
+    shell:  "touch {output}"
+
+rule flye_env:
+    output: touch("flags/flye_env.done")
+    conda:  "envs/flye.yaml"
+    shell:  "touch {output}"
+
+rule genovi_env:
+    output: touch("flags/genovi_env.done")
+    conda:  "envs/genovi.yaml"
+    shell:  "touch {output}"
+
+rule quarto_env:
+    output: touch("flags/quarto_env.done")
+    conda:  "envs/quarto.yaml"
+    shell:  "touch {output}"
+
+rule racon_env:
+    output: touch("flags/racon_env.done")
+    conda:  "envs/racon.yaml"
+    shell:  "touch {output}"
+
+rule ragtag_env:
+    output: touch("flags/ragtag_env.done")
+    conda:  "envs/ragtag.yaml"
+    shell:  "touch {output}"
+
+rule trimmomatic_env:
+    output: touch("flags/trimmomatic_env.done")
+    conda:  "envs/trimmomatic.yaml"
+    shell:  "touch {output}"
+
+rule unicycler_env:
+    output: touch("flags/unicycler_env.done")
+    conda:  "envs/unicycler.yaml"
+    shell:  "touch {output}"
+
+rule mlst_env:
+    output: touch("flags/mlst_env.done")
+    conda:  "envs/mlst.yaml"
+    shell:  "touch {output}"
+
+rule rgi_env:
+    output: touch("flags/rgi_env.done")
+    conda:  "envs/probiopred.yaml"
+    shell:  "touch {output}"
+
+rule phigaro_env:
+    output: touch("flags/phigaro_env.done")
+    conda:  "envs/phigaro.yaml"
+    shell:  "touch {output}"
+
+rule mobileogdb_env:
+    output: touch("flags/mobileogdb_env.done")
+    conda:  "envs/mobileOg.yaml"
+    shell:  "touch {output}"
+
+rule crispr_env:
+    output: touch("flags/crispr_env.done")
+    conda:  "envs/crispr.yaml"
+    shell:  "touch {output}"
+
+rule panvita_env:
+    output: touch("flags/panvita_env.done")
+    conda:  "envs/panvita.yaml"
+    shell:  "touch {output}"
+
+rule antismash_env:
+    output: touch("flags/antismash_env.done")
+    conda:  "envs/antismash.yaml"
+    shell:  "touch {output}"
+
+rule pocp_env:
+    output: touch("flags/pocp_env.done")
+    conda:  "envs/pocp.yaml"
+    shell:  "touch {output}"
+
+rule checkm_env:
+    output: touch("flags/checkm_env.done")
+    conda:  "envs/checkm.yaml"
+    shell:  "touch {output}"
+
+rule bakta_env:
+    output: touch("flags/bakta_env.done")
+    conda:  "envs/bakta.yaml"
+    shell:  "touch {output}"

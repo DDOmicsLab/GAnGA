@@ -1,0 +1,8 @@
+# setup_config.yaml
+#Set parameters or options for setup
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  path_to_db_dir: "/mnt/8tbNew/GAnGA" #Mention path of the directory where you want to store databases which take up around 75GB space
+  path_to_tools_dir: "/mnt/8tbNew/GAnGA" #Mention path of the directory where you want to store tools which take up around 15GB space
+  mobileog_db_download_path: "/home/ddlab3w1/Downloads/beatrix-1-6_v1_all.zip" #Replace /path/to/mobileOGdb/beatrix-1-6_v1_all.zip with the actual path to the mobileOG file downloaded
+  

@@ -1,0 +1,313 @@
+current_directory = os.getcwd()
+db_dir = config["parameters"]["path_to_db_dir"]
+
+rule all:
+    input: 
+                os.path.join(current_directory, "flags/checkm.done"),
+                os.path.join(current_directory, "flags/bakta_db.done"),
+                os.path.join(current_directory, "flags/phigaro.done"),
+                os.path.join(current_directory, "flags/panvita.done"),
+                os.path.join(current_directory, "flags/antismash_db.done"),
+
+
+rule CheckM_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/checkm.done")
+    params:
+        cd=current_directory,
+        db_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        checkm_dir=os.path.join(db_dir, "ganga_databases", "checkm"),
+        sha256_checkm_data_tar_gz="971ec469348bd6c3d9eb96142f567f12443310fa06c1892643940f35f86ac92c",
+        sha256_taxon_marker_tsv="4e79c1cd98d0916d55ae0cd53f8a7c2076a1a506b187b857a46143904df4db92",
+        sha256_selected_marker_tsv="bc3d579457dbf6a1e9939daee452fcc93b64aaa81e213da3488a77fb267f73a5"
+    conda:
+        "envs/checkm.yaml"
+    shell:
+        """
+        echo "Downloading CheckM database..."
+
+        mkdir -p {params.db_dir}
+        mkdir -p {params.checkm_dir}
+        cd {params.checkm_dir}
+
+        tarball="checkm_data_2015_01_16.tar.gz"
+        db_folder="checkm_data_2015_01_16"
+
+        if [ ! -f "$tarball" ] || ! echo "{params.sha256_checkm_data_tar_gz}  $tarball" | sha256sum -c --status; then
+            echo "Downloading CheckM DB tarball..."
+            rm -f $tarball
+            wget https://data.ace.uq.edu.au/public/CheckM_databases/$tarball
+        fi
+
+        if ! echo "{params.sha256_checkm_data_tar_gz}  $tarball" | sha256sum -c --status; then
+            echo "❌ CheckM tarball checksum verification failed. Exiting."
+            rm -f $tarball
+            exit 1
+        fi
+
+        if [ ! -d "$db_folder" ]; then
+            echo "Extracting CheckM DB..."
+            tar -xvzf $tarball
+        fi
+
+        echo "Verifying extracted files..."
+        if ! echo "{params.sha256_taxon_marker_tsv}  $db_folder/taxon_markers.tsv" | sha256sum -c --status; then
+            echo "❌ taxon_markers.tsv checksum failed. Redownloading DB..."
+            rm -rf "$db_folder"
+            tar -xvzf $tarball
+        fi
+
+        if ! echo "{params.sha256_selected_marker_tsv}  $db_folder/selected_marker_sets.tsv" | sha256sum -c --status; then
+            echo "❌ selected_marker_sets.tsv checksum failed. Redownloading DB..."
+            rm -rf "$db_folder"
+            tar -xvzf $tarball
+        fi
+
+        echo "✅ CheckM database setup complete and verified."
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+
+rule Bakta_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/bakta_db.done")
+    params:
+        db_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        cd=current_directory,
+        db_path=os.path.join(db_dir, "ganga_databases", "bakta_db"),
+        sha256_antifam_h3f="e04ccc6224b2d29393e550c694859f9c26f8c498cb6f9b86902d280846777409",
+        sha256_ncRNA_genes_i1p="552756c036cbd93ccd837832350e9721f84355a07c7de71c7b8d4ee58dece52c",
+        sha256_pfam_h3f="a22b8410700fc8e6d352d5672f9436968c8523c968f482732a8f6af68f55f51b"
+    conda:
+        "envs/bakta.yaml"
+    shell:
+        """
+        echo "Downloading Bakta database..."
+
+        bakta_db_dir="{params.db_path}"
+
+        required_files=(
+            "$bakta_db_dir/db/bakta.db"
+            "$bakta_db_dir/db/antifam.h3f"
+            "$bakta_db_dir/db/pfam.h3i"
+            "$bakta_db_dir/db/version.json"
+        )
+
+        all_files_exist=true
+        for file in "${{required_files[@]}}"; do
+            if [ ! -f "$file" ]; then
+                all_files_exist=false
+                break
+            fi
+        done
+
+        if [ "$all_files_exist" = false ]; then
+            echo "Bakta DB not found or incomplete. Proceeding with download..."
+            rm -rf "$bakta_db_dir"
+            mkdir -p {params.db_dir}
+            bakta_db download --output "$bakta_db_dir" --type full
+        else
+            echo "✅ Bakta DB already exists. Verifying checksums..."
+        fi
+
+            echo "Verifying checksums..."
+
+        if ! echo "{params.sha256_antifam_h3f}  $bakta_db_dir/db/antifam.h3f" | sha256sum -c --status; then
+            echo "❌ antifam.h3f checksum failed. Redownloading..."
+            rm -rf "$bakta_db_dir"
+            bakta_db download --output "$bakta_db_dir" --type full
+        fi
+
+        if ! echo "{params.sha256_pfam_h3f}  $bakta_db_dir/db/pfam.h3f" | sha256sum -c --status; then
+            echo "❌ pfam.h3f checksum failed. Redownloading..."
+            rm -rf "$bakta_db_dir"
+            bakta_db download --output "$bakta_db_dir" --type full
+        fi
+
+        if ! echo "{params.sha256_ncRNA_genes_i1p}  $bakta_db_dir/db/ncRNA-genes.i1p" | sha256sum -c --status; then
+            echo "❌ ncRNA-genes.i1p checksum failed. Redownloading..."
+            rm -rf "$bakta_db_dir"
+            bakta_db download --output "$bakta_db_dir" --type full
+        fi
+
+        echo "✅ All Bakta DB files verified successfully."
+
+        echo -n > {output}
+        true
+        """
+
+rule Phigaro_setup:
+    input:
+        os.path.join(current_directory, "scripts/phigaro_setup_inputs.txt")
+    output:
+        os.path.join(current_directory, "flags/phigaro.done")
+    params:
+        cd=current_directory,
+        tools_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        sha256_allpvoghmms="4a2dec190f2c6c9095debcbf9bd8aca18c5de53fc9dee99394d98ff76ff3c267",
+        sha256_h3f="1fe230c42ac2298629f5eb1b1a9461239d5ffe04fce45cc07b5ab6bb2bb6cf69",
+        sha256_h3i="694f5946148e75f5f25354845e615b7f3cbbccc4c276bd14fbe5f71f987d0385",
+        sha256_h3m="3a505677938c1a3b3b4e061c8efc4db59b0004c3d980d18529a86b107d26f980",
+        sha256_h3p="25549856491896f4c6990044111b135b78aa73ec7e98ce069c5dec9dd000a081"
+    conda:
+        "envs/phigaro.yaml"
+    shell:
+        """
+        echo "Setting up Phigaro..."
+        mkdir -p {params.tools_dir}
+
+        files_to_check=(
+            "allpvoghmms:{params.sha256_allpvoghmms}"
+            "allpvoghmms.h3f:{params.sha256_h3f}"
+            "allpvoghmms.h3i:{params.sha256_h3i}"
+            "allpvoghmms.h3m:{params.sha256_h3m}"
+            "allpvoghmms.h3p:{params.sha256_h3p}"
+        )
+
+        need_setup=false
+
+        for entry in "${{files_to_check[@]}}"; do
+            file="${{entry%%:*}}"
+            checksum="${{entry##*:}}"
+
+            if [ ! -f "{params.tools_dir}/ganga_databases/phigaro/pvog/$file" ]; then
+                echo "⚠️ $file missing"
+                need_setup=true
+            else
+                # Check checksum
+                echo "$checksum  {params.tools_dir}/ganga_databases/phigaro/pvog/$file" | sha256sum -c - >/dev/null 2>&1 || {{
+                    echo "⚠️ $file corrupted, will redownload"
+                    need_setup=true
+                }}
+            fi
+        done
+
+        if [ "$need_setup" = true ]; then
+            echo "⚙️ Cleaning old/corrupted files..."
+            for entry in "${{files_to_check[@]}}"; do
+                file="${{entry%%:*}}"
+                if [ -f "{params.tools_dir}/ganga_databases/phigaro/pvog/$file" ]; then
+                    rm -f "{params.tools_dir}/ganga_databases/phigaro/pvog/$file"
+                fi
+            done
+
+            echo "⚙️ Running Phigaro setup..."
+            
+            phigaro-setup -c {params.tools_dir}/ganga_databases/phigaro/config.yml -p {params.tools_dir}/ganga_databases/phigaro/pvog/ --no-updatedb --force < {input}
+
+            for entry in "${{files_to_check[@]}}"; do
+                file="${{entry%%:*}}"
+                checksum="${{entry##*:}}"
+                echo "$checksum  {params.tools_dir}/ganga_databases/phigaro/pvog/$file" | sha256sum -c - || {{
+                    echo "❌ Checksum failed for $file after setup"
+                    exit 1
+                }}
+            done
+        else
+            echo "✅ Phigaro set up  at {params.tools_dir}/ganga_databases/phigaro/ and verified."
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+rule Panvita_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/panvita.done")
+    params:
+        cd=current_directory,
+        tools_dir=lambda wildcards:config["parameters"]["path_to_db_dir"],
+        panvita_dir=os.path.join(db_dir, "ganga_databases", "panvita"),
+        sha256_panvitapy="046768a7f0bfc4053b0fd30cb06c9d20cc84d1c0f4fa83fcabc924ce2a86c5c6"
+    conda:
+        "envs/panvita.yaml"
+    shell:
+        """
+        echo "🔧 Setting up PanViTa..."
+        mkdir -p {params.tools_dir}/ganga_databases
+        cd {params.tools_dir}/ganga_databases
+
+        need_setup=false
+
+        if [ -d panvita ]; then
+            echo "🔍 PanViTa directory exists. Checking panvita.py..."
+            cd panvita
+            if [ -f "panvita.py" ]; then
+                echo "{params.sha256_panvitapy}  panvita.py" | sha256sum -c - >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    echo "✅ panvita.py checksum correct. Proceeding to download databases..."
+                else
+                    echo "❌ panvita.py corrupt. Reinstalling PanViTa..."
+                    cd {params.tools_dir}/ganga_databases/
+                    rm -rf panvita
+                    need_setup=true
+                fi
+            else
+                echo "❌ panvita.py missing. Reinstalling PanViTa..."
+                cd {params.tools_dir}/ganga_databases
+                rm -rf panvita
+                need_setup=true
+            fi
+        else
+            need_setup=true
+        fi
+
+        if [ "$need_setup" = true ]; then
+            echo "📦 Cloning PanViTa..."
+            git clone https://github.com/dlnrodrigues/panvita.git
+            cd panvita
+        else
+            cd {params.tools_dir}/ganga_databases/panvita
+        fi
+
+        if [ ! -d "DB" ] || [ ! -d "Dependences" ]; then
+            echo "⬇️ Setting up DBs and Dependences..."
+            mv {params.cd}/DB/ {params.cd}/Dependences/ ./
+        else
+            echo "✅ PanViTa databases already exist. Skipping download."
+        fi
+
+        if [ -f "panvita.py" ] && [ -d "DB" ] && [ -d "Dependences" ]; then
+            if [ -f "DB/vfdb_core.dmnd" ]; then
+                echo "✅ PanViTa installation complete. VFDB present."
+            else
+                echo "❌ VFDB_setA_pro.fas.gz missing in DB."
+                echo "⚠️  NOTE: The official VFDB server (http://www.mgc.ac.cn) is UNREACHABLE at the moment!"
+                echo "ℹ️  Important: This is an external database availability issue, not an error in GAnGA."
+                exit 1
+            fi
+        else
+            echo "❌ PanViTa installation failed. Check output."
+            exit 1
+        fi
+
+        cd {params.cd}
+        echo -n > {output}
+        """
+
+rule antismash_db_setup:
+    input:
+
+    output:
+        os.path.join(current_directory, "flags/antismash_db.done")
+    params:
+        db_path=lambda wildcards:config["parameters"]["path_to_db_dir"]
+    conda:
+        "envs/antismash.yaml"
+    shell:
+        """
+        echo " Setting up antiSMASH databases..."
+        mkdir -p {params.db_path}/ganga_databases/antismash
+        download-antismash-databases --database-dir {params.db_path}/ganga_databases/antismash
+        echo "✅ antiSMASH database setup complete."
+        echo -n > {output}
+        """
+
