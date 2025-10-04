@@ -35,7 +35,8 @@ parameters:
 
 #Directory where the output is expected
 outdir: ""
-
+path_to_db_dir: "" #Mention path of the directory where you have stored databases 
+path_to_tools_dir: "" #Mention path of the directory where you have stored tools
 
 #list all the samples with their information
 samples:
