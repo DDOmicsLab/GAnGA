@@ -66,18 +66,15 @@ conda update -n base -c conda-forge conda -y
 ### Ubuntu / Debian
 
 ```bash
-# Install system dependencies
-sudo apt-get update && sudo apt-get upgrade
-sudo apt install python3-pip build-essential cmake gfortran gobjc gobjc++ gnustep gnustep-devel libbz2-dev liblzma-dev libpcre2-dev libcurl4-openssl-dev libcairo2-dev libtiff5-dev libreadline-dev libxml2-dev libharfbuzz-dev libfribidi-dev libglpk-dev libgsl-dev libgmp-dev libmpc-dev libudunits2-dev libgdal-dev libmagick++-dev
-
-# Additional image libraries
-sudo apt install libfreetype6-dev libpng-dev libjpeg-dev gcc g++
-
-# Required to install LaTex
-sudo apt-get update && sudo apt-get install -y texlive-full pandoc
-
 # Conda-based install
 conda install -c conda-forge pkg-config
+
+# Install system dependencies
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install python3-pip build-essential cmake gfortran gobjc gobjc++ gnustep gnustep-devel libbz2-dev liblzma-dev libpcre2-dev libcurl4-openssl-dev libcairo2-dev libtiff5-dev libreadline-dev libxml2-dev libharfbuzz-dev libfribidi-dev libglpk-dev libgsl-dev libgmp-dev libmpc-dev libudunits2-dev libgdal-dev libmagick++-dev libfreetype6-dev libpng-dev libjpeg-dev gcc g++
+
+# Required to install LaTex
+sudo apt-get install -y texlive-full pandoc
 ```
 
 ## Installation 
@@ -104,29 +101,31 @@ conda activate ganga
   
   Click on ```Download All Data``` under the ```Beatrix 1.6 v1 Current Version``` tab
   
-#### ii) Installation (Recommended)
-Run the following command to install all required tools and databases.
-Make sure you have atleast 50GB of space for the installation. 
-This steps installs all the necessary softwares and required databases inside the GAnGA directory
+#### ii) Installation 
+Run the following commands to install GAnGA. These steps will install all the necessary software and required databases in the locations you specify. To do this, provide the full paths to the directories where you want to store the tools and databases (approximately 20 GB and 85 GB of space required, respectively) in the ```setup_config.yaml``` file.
 
+```
+# setup_config.yaml
+#Set parameters or options for setup
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  path_to_db_dir: "" #Mention path of the directory where you want to store databases which take up around 85GB space
+  path_to_tools_dir: "" #Mention path of the directory where you want to store tools which take up around 20GB space
+  mobileog_db_download_path: "" #Replace /path/to/mobileOGdb/beatrix-1-6_v1_all.zip with the actual path to the mobileOG file downloaded
+```
 
-Replace ```/path/to/mobileOGdb/beatrix-1-6_v1_all.zip``` with the actual path to the file downloaded in Step i:
+After configuring the ```setup_config.yaml``` file, run the following commands to complete the installation:
+
 ```
 cd path/to/GAnGA
-snakemake -s setup_snakefile --use-conda --cores 8 --config mobileog_db_download_path=/path/to/mobileOGdb/beatrix-1-6_v1_all.zip
+mv configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
+snakemake -s envs_snakefile --use-conda --cores 8
+snakemake -s tools_snakefile --configfile setup_config.yaml --use-conda --cores 8
+snakemake -s db_snakefile --configfile setup_config.yaml --use-conda --cores 8
+mv setup_config.yaml configfiles/
+mv envs_snakefile tools_snakefile db_snakefile snakefiles/
 ```
-### OR
-#### ii) Alternative: Two-Step Installation (for Slow Internet)
- 
-If you have a weak or unstable internet connection, install GAnGA in two separate steps:
-  1) Install tools
-```
-  snakemake -s tools_snakefile --use-conda --cores 8 --config mobileog_db_download_path=/path/to/mobileOGdb/beatrix-1-6_v1_all.zip
-```
-  2) Install databases
-```
-  snakemake -s db_snakefile --use-conda --cores 8 
-```
+
 
 ## Usage
 To get started, you’ll need just two things:
