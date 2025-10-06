@@ -27,37 +27,33 @@ rule RGI_setup:
         """
         mkdir -p {params.tools_dir}/ganga_tools/
 	    cd {params.tools_dir}/ganga_tools/
-        if [ ! -d "rgi" ]; then
-            git clone https://github.com/arpcard/rgi.git
+	
+    # Check for rgi_autoload_* directories
+        if ls -d rgi/rgi_autoload_* >/dev/null 2>&1; then
+            echo "✅ rgi_autoload_* directories already exist. Skipping RGI setup."
+        else
 
-        fi
+            if [ ! -d "rgi" ]; then
+                git clone https://github.com/arpcard/rgi.git
+            else
+                echo "✅ RGI repository already exists. Skipping clone."
+
+            fi
+            
             cd rgi
             pip3 install .
             rgi auto_load
             cd {params.tools_dir}/ganga_tools/
-
-        if [ ! -f "localDB/card.json" ]; then
-            wget https://card.mcmaster.ca/latest/data
-	        tar -xvf data ./card.json
-            rgi load --card_json ./card.json --local
         fi
-
-        if ! ls card_database_*_all.fasta >/dev/null 2>&1; then
-            echo "❌ ERROR: Missing card_database_*_all.fasta files." >&2
-            exit 1
-        fi
-        if ! ls card_database_*.fasta >/dev/null 2>&1; then
-            echo "❌ ERROR: Missing card_database_*.fasta files." >&2
-            exit 1
-        fi
-
-        # Check for rgi_autoload_* directories
+     
+    # Check for rgi_autoload_* directories
+	    cd {params.tools_dir}/ganga_tools/rgi
         if ! ls -d rgi_autoload_* >/dev/null 2>&1; then
             echo "❌ ERROR: No rgi_autoload_* directory found." >&2
             exit 1
         fi
 
-        # Validate structure inside rgi_autoload_*
+    # Validate structure inside rgi_autoload_*
         for d in rgi_autoload_*; do
             if [ ! -d "$d/card_data" ] || [ ! -d "$d/card_variants" ]; then
                 echo "❌ ERROR: Missing required subdirectories in $d" >&2
@@ -68,6 +64,30 @@ rule RGI_setup:
                 exit 1
             fi
         done
+	
+    # Check for localDB required files
+    localdb_dir="localDB"
+    required_files=("card.json" "loaded_databases.json")
+
+    cd {params.tools_dir}/ganga_tools/
+
+    # If localDB missing or any required file missing, download/load
+    missing=false
+    for f in "${{required_files[@]}}"; do
+        if [ ! -f "$localdb_dir/$f" ]; then
+            missing=true
+            break
+        fi
+    done
+
+    if [ "$missing" = true ]; then
+        echo "🔹 Some localDB files are missing. Downloading..."
+        wget -c https://card.mcmaster.ca/latest/data
+        tar -xvf data ./card.json
+        rgi load --card_json ./card.json --local
+    else
+        echo "✅ All required localDB files exist. Skipping download."
+    fi
 
 	    cd {params.cd}
         echo -n > {output}
