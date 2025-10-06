@@ -271,6 +271,10 @@ rule Panvita_setup:
         if [ ! -d "DB" ] || [ ! -d "Dependences" ]; then
             echo "⬇️ Setting up DBs and Dependences..."
             mv {params.cd}/DB/ {params.cd}/Dependences/ ./
+            rm -f ~/.panvita.db.paths ~/.panvita.dp.paths
+            echo "{params.tools_dir}/ganga_databases/panvita/DB" > ~/.panvita.db.paths
+            echo "{params.tools_dir}/ganga_databases/panvita/Dependences" > ~/.panvita.dp.paths
+        fi
         else
             echo "✅ PanViTa databases already exist. Skipping download."
         fi

@@ -790,6 +790,7 @@ rule Panvita:
     params:
         outdir_path=os.path.join(data_dir,"{sample}/17_panvita/"),
         cd=current_directory,
+        panvita_db=os.path.join(db_dir, "ganga_databases", "panvita"),
         panvita_path=os.path.join(db_dir, "ganga_databases", "panvita/panvita.py")
     log:
         os.path.join(data_dir,"{sample}/logs/{sample}_panvita.log"),
@@ -800,11 +801,13 @@ rule Panvita:
     shell:
         """
         mkdir -p {params.outdir_path}
-        cd {params.outdir_path}
+        cd {params.panvita_db}
+        #cd {params.outdir_path}
         python3 {params.panvita_path} -vfdb {input.annotated_file} &> {log}
-        mv Results_vfdb* Results_vfdb
-        sed -i 's/;/,/g' Results_vfdb/vfdb_mechanisms.csv
-        sed -i 's/;/,/g' Results_vfdb/matriz_vfdb.csv
+        mv Results_vfdb* {output.vfdb}
+        cd {output.vfdb}
+        sed -i 's/;/,/g' vfdb_mechanisms.csv
+        sed -i 's/;/,/g' matriz_vfdb.csv
         cd {params.cd}
         """
 
