@@ -301,11 +301,12 @@ snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --core
 Tip: You can add the ```--dry-run``` flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
 
 
-## Required dependencies: will be automatically installed while executing the pipeline
+## List of tools used in GAnGA
 * [FastQC](https://github.com/s-andrews/FastQC)
 * [Trimmomatic](https://github.com/timflutre/trimmomatic)
 * [Unicycler](https://github.com/rrwick/Unicycler)
 * [CheckM](https://github.com/Ecogenomics/CheckM)
+* [QUAST](https://github.com/ablab/quast)
 * [FastANI](https://github.com/ParBLiSS/FastANI)
 * [pocp](https://github.com/hoelzer/pocp)
 * [EzAAI](https://github.com/endixk/ezaai)
@@ -321,11 +322,13 @@ Tip: You can add the ```--dry-run``` flag to any snakemake command to verify tha
 * [mobileOG](https://github.com/clb21565/mobileOG-db?tab=readme-ov-file)
 * [CRISPRcasIdentifier](https://github.com/BackofenLab/CRISPRcasIdentifier)
 * [PanViTa](https://github.com/dlnrodrigues/panvita)
+* [antiSMASH](https://docs.antismash.secondarymetabolites.org/)
 * [GenoVi](https://github.com/robotoD/GenoVi)
 * [chopper](https://github.com/wdecoster/chopper)
 * [Flye](https://github.com/mikolmogorov/Flye)
 * [Minimap2](https://github.com/lh3/minimap2)
 * [Racon](https://github.com/isovic/racon)
+* [Quarto](https://quarto.org/)
 
 
 
