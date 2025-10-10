@@ -136,9 +136,12 @@ To get started, you’ll need just two things:
    
 If you already know the reference genome — _VOILÀ_! — you can move directly to the execution step.
 
-But if you don’t, no worries — we’ve got you covered! Follow the steps below to identify your reference genome.
+But if you don’t, no worries — we’ve got you covered! Follow the steps in ```Finding the Reference Genome``` to identify your reference genome.
 
-### Finding the reference genome
+
+<details>
+  <summary><b>🧬 Finding the Reference Genome</b></summary>
+  
 #### 1. Set the output directory and add genome information in ```16S_config.yaml file``` file present in the ```configfiles``` directory
 Example:
 ```
@@ -165,8 +168,11 @@ Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.
 
 3. Run ```blastn``` against rRNA/ITS databases at [NCBI BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome) or [NCBI Genomes](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastSearch&BLAST_SPEC=MicrobialGenomes) with the 16S rRNA sequence as the query sequence
 4. Select and download the complete reference genome in **FASTA format**.
+</details>
 
-### Execution
+
+
+## Execution
 #### 🧬 GAnGA Configuration
 
 Below are the setup instructions for different sequencing read types.
