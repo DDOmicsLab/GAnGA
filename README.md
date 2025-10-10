@@ -167,9 +167,20 @@ Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.
 4. Select and download the complete reference genome in **FASTA format**.
 
 ### Execution
-Tip: You can add the --dry-run flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
-### Short Reads
+#### 🧬 GAnGA Configuration
+
+Below are the setup instructions for different sequencing read types.
+
+---
+
+<details>
+  <summary><b>📘 Short Reads</b></summary>
+
 #### 1. Set the output directory and add genome information in ```short_config.yaml``` file present in the ```configfiles``` directory
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/short_snakefile configfiles/short_config.yaml ./
+```
 Example:
 ```
 #Enter complete paths for the following:
@@ -191,16 +202,22 @@ samples:
 
 #### 2. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/short_snakefile configfiles/short_config.yaml ./
 snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 8
 ```
+</details>
 
-### Long reads 
+<details> 
+  <summary><b>📗 Long Reads</b></summary>
+  
 #### 1. Mandatory Configuration Before Running the Pipeline
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/long_snakefile configfiles/long_config.yaml ./
+```
 In the config.yaml, you must specify the ```sequencing type``` for Flye and the ```ax``` preset for Minimap2.
 If these are not set correctly, the pipeline execution will fail.
 Example:
+  
 ```
   Flye: 
     options: "-t 8"
@@ -238,13 +255,19 @@ samples:
 ```
 #### 3. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/long_snakefile configfiles/long_config.yaml ./
 snakemake -s long_snakefile --configfile long_config.yaml --use-conda --cores 8
 ```
 
-### Hybrid reads
+</details>
+
+<details>
+  <summary><b>📙 Hybrid Reads</b></summary>
+  
 #### 1. Set the output directory and add genome information in ```hybrid_config.yaml``` file present in the ```configfiles``` directory
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
+```
 Example:
 ```
 #Enter complete paths for the following:
@@ -265,10 +288,12 @@ samples:
 ```
 #### 2. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
 snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --cores 8
 ```
+</details>
+
+Tip: You can add the ```--dry-run``` flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
+
 
 ## Required dependencies: will be automatically installed while executing the pipeline
 * [FastQC](https://github.com/s-andrews/FastQC)
