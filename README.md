@@ -109,9 +109,9 @@ Run the following commands to install GAnGA. These steps will install all the ne
 #Set parameters or options for setup
 #these are the default parameters, only change if you know what you're doing
 parameters:
-  path_to_db_dir: "" #Mention path of the directory where you want to store databases which take up around 85GB space
-  path_to_tools_dir: "" #Mention path of the directory where you want to store tools which take up around 20GB space
-  mobileog_db_download_path: "" #Replace /path/to/mobileOGdb/beatrix-1-6_v1_all.zip with the actual path to the mobileOG file downloaded
+  path_to_db_dir: "/path/to/db" # Mention path of the directory where you want to store databases which take up around 85GB space
+  path_to_tools_dir: "/path/to/tools" # Mention path of the directory where you want to store tools which take up around 20GB space
+  mobileog_db_download_path: "/path/to/mobileOGdb/beatrix-1-6_v1_all.zip"  # Replace with the actual path to the mobileOG file downloaded
 ```
 
 After configuring the ```setup_config.yaml``` file, run the following commands to complete the installation:
@@ -136,9 +136,10 @@ To get started, you’ll need just two things:
    
 If you already know the reference genome — _VOILÀ_! — you can move directly to the execution step.
 
-But if you don’t, no worries — we’ve got you covered! Follow the steps below to identify your reference genome.
+But if you don’t, no worries — we’ve got you covered! Follow the steps in ```Finding the Reference Genome``` to identify your reference genome.
 
-### Finding the reference genome
+<details>
+  <summary><b>🧬 Finding the Reference Genome</b></summary>
 #### 1. Set the output directory and add genome information in ```16S_config.yaml file``` file present in the ```configfiles``` directory
 Example:
 ```
@@ -165,15 +166,30 @@ Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.
 
 3. Run ```blastn``` against rRNA/ITS databases at [NCBI BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome) or [NCBI Genomes](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastSearch&BLAST_SPEC=MicrobialGenomes) with the 16S rRNA sequence as the query sequence
 4. Select and download the complete reference genome in **FASTA format**.
+</details>
 
 ### Execution
-Tip: You can add the --dry-run flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
-### Short Reads
+GAnGA supports three sequencing input types — short-read, long-read, and hybrid reads.
+Each workflow is optimized with tool-specific configurations and conda environments.
+Choose the workflow that matches your data type from the dropdowns below and follow the execution instructions.
+
+<details>
+  <summary><b>📘 Short Reads</b></summary>
+
 #### 1. Set the output directory and add genome information in ```short_config.yaml``` file present in the ```configfiles``` directory
+
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/short_snakefile configfiles/short_config.yaml ./
+nano short_config.yaml
+```
+
 Example:
 ```
-#Directory where the output is expected
-outdir: "/path/to/output/directory"
+#Enter complete paths for the following:
+outdir: "/path/to/output/directory" #Directory where the output is expected
+path_to_db_dir: "/path/to/db" #Directory where you have stored databases 
+path_to_tools_dir: "/path/to/tools" #Directory where you have stored tools
 
 #List all the genomes with their information (Mention the global paths of R1, R2 and reference_fasta)
 samples:
@@ -189,12 +205,11 @@ samples:
 
 #### 2. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/short_snakefile configfiles/short_config.yaml ./
 snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 8
 ```
+</details>
 
-### Long reads 
+<details> <summary><b>📗 Long Reads</b></summary>
 #### 1. Mandatory Configuration Before Running the Pipeline
 In the config.yaml, you must specify the ```sequencing type``` for Flye and the ```ax``` preset for Minimap2.
 If these are not set correctly, the pipeline execution will fail.
@@ -218,10 +233,18 @@ Example:
           #   map-pb  : for PacBio
 ```
 #### 2. Set the output directory and add genome information in ```long_config.yaml``` file present in the ```configfiles``` directory
+
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/long_snakefile configfiles/long_config.yaml ./
+```
+
 Example:
 ```
-#Directory where the output is expected
-outdir: "/path/to/output/directory"
+#Enter complete paths for the following:
+outdir: "/path/to/output/directory" #Directory where the output is expected
+path_to_db_dir: "/path/to/db" #Directory where you have stored databases 
+path_to_tools_dir: "/path/to/tools" #Directory where you have stored tools
 
 #List all the genomes with their information (Mention the global paths of R1 and reference_fasta)
 samples:
@@ -234,17 +257,24 @@ samples:
 ```
 #### 3. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/long_snakefile configfiles/long_config.yaml ./
 snakemake -s long_snakefile --configfile long_config.yaml --use-conda --cores 8
 ```
+</details>
 
-### Hybrid reads
+<details> <summary><b>📙 Hybrid Reads</b></summary>
 #### 1. Set the output directory and add genome information in ```hybrid_config.yaml``` file present in the ```configfiles``` directory
+
+```
+cd path/to/installation/directory/GAnGA
+mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
+```
+
 Example:
 ```
-#Directory where the output is expected
-outdir: "/path/to/output/directory"
+#Enter complete paths for the following:
+outdir: "/path/to/output/directory" #Directory where the output is expected
+path_to_db_dir: "/path/to/db" #Directory where you have stored databases 
+path_to_tools_dir: "/path/to/tools" #Directory where you have stored tools
 
 #List all the genomes with their information (Mention the global paths of R1, R2, L1 and reference_fasta)
 samples:
@@ -259,10 +289,11 @@ samples:
 ```
 #### 2. Run the pipeline
 ```
-cd path/to/installation/directory/GAnGA
-mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
 snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --cores 8
 ```
+</details>
+
+Tip: You can add the --dry-run flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
 
 ## Required dependencies: will be automatically installed while executing the pipeline
 * [FastQC](https://github.com/s-andrews/FastQC)
