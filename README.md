@@ -105,6 +105,11 @@ conda activate ganga
 Run the following commands to install GAnGA. These steps will install all the necessary software and required databases in the locations you specify. To do this, provide the full paths to the directories where you want to store the tools and databases (approximately 20 GB and 85 GB of space required, respectively) in the ```setup_config.yaml``` file.
 
 ```
+cd path/to/GAnGA
+mv configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
+```
+
+```
 # setup_config.yaml
 #Set parameters or options for setup
 #these are the default parameters, only change if you know what you're doing
@@ -117,8 +122,6 @@ parameters:
 After configuring the ```setup_config.yaml``` file, run the following commands to complete the installation:
 
 ```
-cd path/to/GAnGA
-mv configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
 snakemake -s envs_snakefile --use-conda --cores 8
 snakemake -s tools_snakefile --configfile setup_config.yaml --use-conda --cores 8
 snakemake -s db_snakefile --configfile setup_config.yaml --use-conda --cores 8
