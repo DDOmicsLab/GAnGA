@@ -326,32 +326,20 @@ rule POCP_setup:
             echo "✅ POCP already cloned. Skipping."
         fi
 
-        # Step 2: Create POCP internal environments
-        cd pocp
 
-        mkdir -p conda
+        cd {params.tools_dir}/ganga_tools/pocp
 
-        if [ ! -d "conda/diamond-b7840aeee969495cd336a21577d30291" ]; then
-            echo "🔹 Creating POCP Diamond environment..."
-            conda env create -f envs/diamond.yaml -p conda/diamond-b7840aeee969495cd336a21577d30291
+        # Paths to POCP internal environments
+        DIAMOND_ENV="{params.tools_dir}/ganga_tools/conda/diamond-b7840aeee969495cd336a21577d30291"
+        PROKKA_ENV="{params.tools_dir}/ganga_tools/conda/prokka-a654128b10c43c5acab22d7baf8242c2"
+        RUBY_ENV="{params.tools_dir}/ganga_tools/conda/ruby-442ce96d6cd2c037f4c043f297d5b7c5"
+
+        if [ ! -d "$DIAMOND_ENV" ] || [ ! -d "$PROKKA_ENV" ] || [ ! -d "$RUBY_ENV" ]; then
+            echo "🔹 Setting up POCP..."
+            nextflow run hoelzer/pocp -r 2.3.0 --genomes example/Cav_10DC88.fasta --genome example/Cav_11DC096.fasta -profile local,conda --output test_output
         else
-            echo "✅ Diamond environment already exists in pocp/conda."
+            echo "✅ POCP already exists."
         fi
-
-        if [ ! -d "conda/prokka-a654128b10c43c5acab22d7baf8242c2" ]; then
-            echo "🔹 Creating POCP Prokka environment..."
-            conda env create -f envs/prokka.yaml -p conda/prokka-a654128b10c43c5acab22d7baf8242c2
-        else
-            echo "✅ Prokka environment already exists in pocp/conda."
-        fi
-
-        if [ ! -d "conda/ruby-442ce96d6cd2c037f4c043f297d5b7c5" ]; then
-            echo "🔹 Creating POCP Ruby environment..."
-            conda env create -f envs/ruby.yaml -p conda/ruby-442ce96d6cd2c037f4c043f297d5b7c5
-        else
-            echo "✅ Ruby environment already exists in pocp/conda."
-        fi
-
 
         cd {params.cd}
         echo -n > {output}
