@@ -1,4 +1,5 @@
-# GAnGA
+<img width="1247" height="477" alt="image" src="https://github.com/user-attachments/assets/f4cf242c-3919-4bf3-9eb7-5d50ec350f48" />
+
 
 **GAnGA** is an automated, open-source, and user-friendly command-line pipeline built with [Snakemake](https://snakemake.github.io/) for assembling and annotating bacterial whole-genome sequencing (WGS) data. It enables minimal manual intervention, hassle-free installation, and multi-genome analysis in a single step.
 
