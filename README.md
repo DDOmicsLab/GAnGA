@@ -130,7 +130,7 @@ mv setup_config.yaml configfiles/
 mv envs_snakefile tools_snakefile db_snakefile snakefiles/
 ```
 
-### Note: If you face issue in downloading data in the above commands. Please use same command again. Snakemake will by default resume from where it was left.
+### Note: If you encounter any issues while downloading data using the above commands, simply rerun the same command. Snakemake will automatically resume the process from where it stopped.
 
 ## Usage
 To get started, you’ll need just two things:
