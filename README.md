@@ -101,6 +101,7 @@ conda activate ganga
   Download the mobileOG database from the [mobileOG](https://mobileogdb.flsi.cloud.vt.edu/entries/database_download) website.
   
   Click on ```Download All Data``` under the ```Beatrix 1.6 v1 Current Version``` tab
+  Save the database file in the desired location. It will be linked with the pipeline while running setup_config.yaml
   
 #### ii) Installation 
 Run the following commands to install GAnGA. These steps will install all the necessary software and required databases in the locations you specify. To do this, provide the full paths to the directories where you want to store the tools and databases (approximately 20 GB and 85 GB of space required, respectively) in the ```setup_config.yaml``` file.
@@ -130,6 +131,7 @@ mv setup_config.yaml configfiles/
 mv envs_snakefile tools_snakefile db_snakefile snakefiles/
 ```
 
+### Note: If you face issue in downloading data in the above commands. Please use same command again. Snakemake will by default resume from where it was left.
 
 ## Usage
 To get started, you’ll need just two things:
