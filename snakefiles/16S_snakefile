@@ -14,24 +14,40 @@ rule all:
 
 rule Trimmomatic:
     input:
-        r1=lambda wildcards:config["samples"][wildcards.sample]["R1"],
-        r2=lambda wildcards:config["samples"][wildcards.sample]["R2"],
+        valid_taxa=os.path.join(data_dir, "{sample}/logs/{sample}_validate_taxa.done"),
+        r1 = lambda wc: config["samples"][wc.sample]["R1"],
+        r2 = lambda wc: config["samples"][wc.sample]["R2"]
     output:
-        forward_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_paired.fastq.gz"),
-        forward_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/forward_unpaired.fastq.gz"),
-        reverse_paired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_paired.fastq.gz"),
-        reverse_unpaired=os.path.join(data_dir, "{sample}/00_trimmed_reads/reverse_unpaired.fastq.gz"),
+        fwd_paired   = os.path.join(data_dir, "{sample}", "00_trimmed_reads", "forward_paired.fastq.gz"),
+        fwd_unpaired = os.path.join(data_dir, "{sample}", "00_trimmed_reads", "forward_unpaired.fastq.gz"),
+        rev_paired   = os.path.join(data_dir, "{sample}", "00_trimmed_reads", "reverse_paired.fastq.gz"),
+        rev_unpaired = os.path.join(data_dir, "{sample}", "00_trimmed_reads", "reverse_unpaired.fastq.gz")
+    threads: 10
+    resources:
+        mem_mb = lambda wc, threads: threads * 2000
     params:
-        options=lambda wildcards:config["parameters"]["Trimmomatic"],
+        extra = "SLIDINGWINDOW:4:15 MINLEN:36",
+        xmx   = lambda wc, resources: f"-Xmx{resources.mem_mb // 1024}g"
+    log:
+        os.path.join(data_dir, "{sample}", "logs", "trimmomatic.log")
     conda:
         "envs/trimmomatic.yaml"
-    log:
-        os.path.join(data_dir,"{sample}/logs/trimmomatic.log"),
-    threads:
-        10
     shell:
-        """
-         trimmomatic PE -threads {threads} -phred33 {input.r1} {input.r2} {output.forward_paired} {output.forward_unpaired} {output.reverse_paired} {output.reverse_unpaired} {params.options} &> {log}
+        r"""
+        echo ">>> Running Trimmomatic with {params.xmx}" > {log}
+        echo ">>> Active conda env: $CONDA_PREFIX" >> {log}
+        JAR=$(find $CONDA_PREFIX/share -name "trimmomatic.jar" | head -n1)
+        if [ ! -s "$JAR" ]; then
+            echo "ERROR: Could not find Trimmomatic jar in $CONDA_PREFIX/share" >> {log}
+            exit 1
+        fi
+        java {params.xmx} -jar $JAR PE \
+            -threads {threads} -phred33 \
+            {input.r1} {input.r2} \
+            {output.fwd_paired} {output.fwd_unpaired} \
+            {output.rev_paired} {output.rev_unpaired} \
+            {params.extra} \
+            &>> {log}
         """   
 
 rule Unicycler:
