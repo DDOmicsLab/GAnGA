@@ -1,15 +1,17 @@
 name: panvita
 channels:
-  - defaults
   - conda-forge
   - bioconda
+  - defaults
+
 dependencies:
-  - python>3
-  - git
-  - pip:
-    - wget
-    - seaborn
-    - pandas
-    - matplotlib
-    - basemap
-    - scipy
+  - python=3.10
+  - numpy=1.26.*
+  - scipy=1.10.*
+  - pandas=2.2.*
+  - matplotlib=3.8.*
+  - seaborn=0.13.*
+  - cartopy=0.22.*
+  - shapely
+  - pyproj
+  - wget
