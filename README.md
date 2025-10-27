@@ -107,7 +107,7 @@ Run the following commands to install GAnGA. These steps will install all the ne
 
 ```
 cd path/to/GAnGA
-mv configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
+cp configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
 ```
 
 ```
@@ -164,7 +164,7 @@ Note: Make sure that your environment is activated
 ```conda activate ganga```
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/16S_snakefile configfiles/16S_config.yaml ./
+cp snakefiles/16S_snakefile configfiles/16S_config.yaml ./
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 ```
 ```{genome}_rrna.fa``` saved in ```11_barrnap``` directory in the ```output_directory``` will contain the 16S sequence
@@ -190,7 +190,7 @@ Below are the setup instructions for different sequencing read types.
 #### 1. Set the output directory and add genome information in ```short_config.yaml``` file present in the ```configfiles``` directory
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/short_snakefile configfiles/short_config.yaml ./
+cp snakefiles/short_snakefile configfiles/short_config.yaml ./
 ```
 Example:
 ```
@@ -223,7 +223,7 @@ snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 
 #### 1. Mandatory Configuration Before Running the Pipeline
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/long_snakefile configfiles/long_config.yaml ./
+cp snakefiles/long_snakefile configfiles/long_config.yaml ./
 ```
 In the config.yaml, you must specify the ```sequencing type``` for Flye and the ```ax``` preset for Minimap2.
 If these are not set correctly, the pipeline execution will fail.
@@ -277,7 +277,7 @@ snakemake -s long_snakefile --configfile long_config.yaml --use-conda --cores 8
 #### 1. Set the output directory and add genome information in ```hybrid_config.yaml``` file present in the ```configfiles``` directory
 ```
 cd path/to/installation/directory/GAnGA
-mv snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
+cp snakefiles/hybrid_snakefile configfiles/hybrid_config.yaml ./
 ```
 Example:
 ```
