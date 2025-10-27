@@ -699,7 +699,7 @@ rule GenoVI:
         genovi -i {input.bakta} -o genovi -s draft --title {params.sample_name} --cogs {params.COGs} {params.options} &> {log}
         mv genovi/* {params.outdir}
         else
-        touch {params.outdir}/{output} && \    # Create empty placeholders to prevent errors 
+        touch {output} && \    # Create empty placeholders to prevent errors 
         echo "Skipping GenoVI for {params.sample_name} due to too many contigs ($contig_count)." &> {log} 
         fi
         """
