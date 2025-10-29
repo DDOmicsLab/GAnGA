@@ -553,15 +553,17 @@ vfdb_mechanisms_csv <- paths[34]
 
 vfdb_analysis <- read.csv(vfdb_mechanisms_csv, header = TRUE, row.names = 1, sep = ",")
 
-transposed <- t(vfdb_analysis)
-
-transposed_df <- data.frame(transposed)
-
+transposed_df <- data.frame(t(vfdb_analysis))
 
 filtered_df <- transposed_df %>%
 filter(if_any(everything(), ~ .x >= 95))
 
+if (nrow(filtered_df) > 0 && ncol(filtered_df) > 0) {
+
 final <- t(filtered_df)
+unique_vals <- unique(as.numeric(final))
+
+if (length(unique_vals) > 1) {
 # Define color palette
 col_new <- colorRampPalette(c("slateblue", "azure2", "#FADA5E", "tan2"))(50)
 
@@ -583,6 +585,15 @@ Heatmap(as.matrix(final),
         row_names_gp = gpar (fontsize = 6),
         col = col_new)
 
+} else {
+    # --- Case: only one unique value ---
+    cat("⚠️ Only one virulence gene (≥95%) found — heatmap not generated.\n")
+  }
+
+} else {
+  # --- Case: no genes meet ≥95% threshold ---
+  cat("⚠️ No virulence genes with ≥95% identity found. Heatmap not generated.\n")
+}
 ```
 
 For more details, PanViTa output files are saved here
