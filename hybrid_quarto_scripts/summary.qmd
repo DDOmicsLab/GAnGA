@@ -104,13 +104,25 @@ cat(swap_cols(summary_lines[10]), "\n")
 Statistics of forward trimmed reads:
 
 ```{r posttrim_stats_for, echo=FALSE, message=FALSE, warning=FALSE}
+# Find all FastQC zip files in the post-trim QC directory
+fastqc_zip_files <- list.files(qc.dir, full.names = TRUE, pattern = "\\.zip$")
+
+# Unzip each FastQC zip file only if not already unzipped
+for (zip_file in fastqc_zip_files) {
+  unzipped_dir <- sub("\\.zip$", "", basename(zip_file))
+  unzipped_path <- file.path(qc.dir, unzipped_dir)
+  
+  if (!dir.exists(unzipped_path)) {
+    unzip(zip_file, exdir = qc.dir)
+  }
+}
 subdirs <- list.dirs(qc.dir, full.names = TRUE, recursive = TRUE)
-fastqc_path <- file.path(subdirs[grepl("unzipped_forward/forward_paired_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_path <- file.path(subdirs[grepl("forward_paired_fastqc$", subdirs)], "fastqc_data.txt")
 fastqc_lines <- readLines(fastqc_path)
 cat(fastqc_lines[7], "\n")
 cat(fastqc_lines[8], "\n")
 
-summary_path <- file.path(subdirs[grepl("unzipped_forward/forward_paired_fastqc$", subdirs)], "summary.txt")
+summary_path <- file.path(subdirs[grepl("forward_paired_fastqc$", subdirs)], "summary.txt")
 summary_lines <- readLines(summary_path)
 
 # Function to swap the first two columns
@@ -128,12 +140,12 @@ Statistics of reverse trimmed reads:
 
 ```{r posttrim_stats_rev, echo=FALSE, message=FALSE, warning=FALSE}
 subdirs <- list.dirs(qc.dir, full.names = TRUE, recursive = TRUE)
-fastqc_path <- file.path(subdirs[grepl("unzipped_reverse/reverse_paired_fastqc$", subdirs)], "fastqc_data.txt")
+fastqc_path <- file.path(subdirs[grepl("reverse_paired_fastqc$", subdirs)], "fastqc_data.txt")
 fastqc_lines <- readLines(fastqc_path)
 cat(fastqc_lines[7], "\n")
 cat(fastqc_lines[8], "\n")
 
-summary_path <- file.path(subdirs[grepl("unzipped_reverse/reverse_paired_fastqc$", subdirs)], "summary.txt")
+summary_path <- file.path(subdirs[grepl("reverse_paired_fastqc$", subdirs)], "summary.txt")
 summary_lines <- readLines(summary_path)
 
 # Function to swap the first two columns
