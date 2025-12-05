@@ -544,7 +544,7 @@ rule RGI:
         rgi main -i {input.pilon_assembly} -o {params.prefix} {params.options} -n {threads} &> {log}
         sed 's/\t\t/\tn\/a\t/g' {output.txt} > {output.tsv}
        
-        sed -i 's/#/;/g' {output.tsv}
+        sed -i 's/#/;/g' {output.tsv} 
 	    cd {params.cd}
 
         """

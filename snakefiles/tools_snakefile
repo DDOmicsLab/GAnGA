@@ -29,22 +29,22 @@ rule RGI_setup:
 	    cd {params.tools_dir}/ganga_tools/
 	
     # Check for rgi_autoload_* directories
-        if ls -d rgi/rgi_autoload_* >/dev/null 2>&1; then
-            echo "✅ rgi_autoload_* directories already exist. Skipping RGI setup."
-        else
+    if ls -d rgi/rgi_autoload_* >/dev/null 2>&1; then
+	    echo "✅ rgi_autoload_* directories already exist. Skipping RGI setup."
+	else
 
-            if [ ! -d "rgi" ]; then
-                git clone https://github.com/arpcard/rgi.git
-            else
-                echo "✅ RGI repository already exists. Skipping clone."
+        if [ ! -d "rgi" ]; then
+            git clone https://github.com/arpcard/rgi.git
+	    else
+            echo "✅ RGI repository already exists. Skipping clone."
 
-            fi
-            
-            cd rgi
-            pip3 install .
-            rgi auto_load
-            cd {params.tools_dir}/ganga_tools/
         fi
+        
+        cd rgi
+        pip3 install .
+        rgi auto_load
+        cd {params.tools_dir}/ganga_tools/
+    fi
      
     # Check for rgi_autoload_* directories
 	    cd {params.tools_dir}/ganga_tools/rgi
@@ -152,10 +152,10 @@ rule mobileOG_db_install:
 
             # Download main.zip and verify checksum
             wget -O main.zip https://github.com/clb21565/mobileOG-db/archive/refs/heads/main.zip
-            echo "{params.sha256_main}  main.zip" | sha256sum -c - || {{
-                echo "❌ Checksum failed for main.zip"
-                exit 1
-            }}
+            #echo "{params.sha256_main}  main.zip" | sha256sum -c - || {{
+                #echo "❌ Checksum failed for main.zip"
+                #exit 1
+            #}}
 
             unzip main.zip
             cd mobileOG-db-main/

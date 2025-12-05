@@ -99,7 +99,7 @@ Bakta output files are stored in `10_bakta` directory in the specified `outdir`.
 Following is the command used for annotating the genome:
 
 ``` bash
-bakta {sample_dir/08_pilon/{sample_name}.fasta} --db {current_directory/bakta_db/db} --prefix {sample_name}_bakta} --genus {genus_name} --species {species_name} --output {sample_dir/10_bakta} --min-contig-length 200 --compliant --force -t 30 &> {sample_dir/logs/bakta.log}
+bakta {sample_dir/08_pilon/{sample_name}.fasta} --db {current_directory/bakta_db/db} --prefix {sample_name}_bakta --genus {genus_name} --species {species_name} --output {sample_dir/10_bakta} --min-contig-length 200 --compliant --force -t 30 &> {sample_dir/logs/bakta.log}
 ```
 
 ```{r bakta_table,echo=FALSE}
@@ -132,7 +132,7 @@ For more details, Bakta output files are saved here
 
 | Filename                                              | Location            | Description                     |
 |------------------------------|-------------------|-----------------------|
-| [bakta.txt](file://  `r file.path(bakta_txt) `) | sample_dir/10_bakta | Summary file of genomic features |
+| [bakta.txt](file://  `r file.path(bakta_txt) `) | sample_dir/10_bakta | Summary file of genomic features (Signal peptide prediction was not enabled) |
 | [bakta.tsv](file:// `r file.path(bakta_tsv)`) | sample_dir/10_bakta | Summary file of annotated genes |
 
 ### Resistance Genes 
@@ -291,7 +291,7 @@ ggplot(mge_count, aes(x = "", y = Count, fill = MGE_category)) +
     "Insertion_sequences"="#4DAF4A", 
     "Integrative_elements"="#0024c6", 
     "Multiple"="#957DFF", 
-    "Amount_of_Unique_ORFs"="#E49B0F"
+    "Amount_of_Unique_ORFs"="#FEE685"
   ))
 ```
 
