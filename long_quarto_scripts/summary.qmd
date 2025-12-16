@@ -115,7 +115,7 @@ conta_value <- data_cols[idx_conta]
 cat(paste0("Completeness\t", compl_value, "\nContamination\t", conta_value, "\n"))
 ```
 
-Annotation statistics:
+Annotation statistics (Signal peptide prediction not enabled):
 ```{r annotation_stats, echo=FALSE}
 file_content <- readLines(bakta_txt)
 cat(file_content[10:24], sep = "\n")

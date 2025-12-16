@@ -1,6 +1,6 @@
 **GAnGA Tutorial**
 
-In this tutorial, you will get to learn to-
+In this tutorial, you will get to learn to
     - Find a reference genome
     - Set up and execute GAnGA for short, long and hybrid - sequencing data
     - Understand Report and navigate between the results
@@ -9,13 +9,14 @@ Let us start with short reads data
 
 For this we are considering 3 different genomes : Bifidobacterium longum (probiotic), Eshcherichia coli K-12 (non-probotic, non-pathogenic) and Klebsiella pneumoniae (pathogenic)
 
-Please run the following bash script ```get_sra.sh``` to download the Illumina paired-end short raw reads
+Please run the following bash script ```get_sra.sh``` to download the raw reads
 
 ```
+cd tutorial
 bash get_sra.sh
 ```
 
-Once you have your raw-reads ready, it's time to move ahead to setting up the config files
+Once you have your raw-reads ready, it's time to move ahead with setting up the config files
 
 
 ### Installing GAnGA 
@@ -23,11 +24,12 @@ Please follow the instructions given in the main README.md file for downloading 
 
 If GAnGA is installed in ```/home/user/```, its path would be ```~/GAnGA```. Throughout this tutorial, we will refer to the GAnGA installation directory as ```~/GAnGA``` for simplicity. ***Please replace this with the actual path where you have downloaded and installed GAnGA on your system.*** 
 
-For executing GAnGA, we need to provide information about the raw reads, reference genome and taxonomic information such as genus and species of the genome to be analysed in the config files.
+For executing GAnGA, we need to provide information about the raw reads, reference genome and taxonomic information such as genus and species of the genome to be analysed in the config files. For this you need to know the reference genome for your test genomes first. If you already know it, it's a CHERRY ON CAKE! Just be ready with the FASTA file of complete reference genome. But if you dont, NO WORRIES! We've got you covered. Go to the ```Finding the Reference Genome``` section to find a reference genome for your test genome.
 
 <details>
   <summary><b>🧬 Finding the Reference Genome</b></summary>
-  
+
+### Short Reads  
 #### 1. Set the output directory and add genome information in ```16S_config.yaml file``` file present in the ```configfiles``` directory
 Example:
 ```
@@ -49,6 +51,30 @@ cp snakefiles/16S_snakefile configfiles/16S_config.yaml ./
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 20
 ```
 ```B_longum_rrna.fa``` file saved in ```11_barrnap``` directory in the ```~/GAnGA/tutorial/output``` will contain the 16S sequence
+
+### Long Reads
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  Chopper:
+    quality: "7"
+    min_length: "500"
+  Flye: 
+    options: "-t 8"
+    sequencing_type: "--nano-raw" 
+  Minimap2:
+    options: "-t 8"
+    ax: "map-ont" #enter map-ont or map-pb based on the sequencing platform used (map-ont for Oxford-Nanopore and map-pb for Pacific Biosciences)
+  Racon: 
+    options: "-t 8"
+  Barrnap: ""
+
+#Directory where the output is expected
+outdir: ""
+
+#list all the samples with their information
+samples:
+  Genome_1:
+    R1: ""
 
 Note: For long-read data, use the ```16S_longsnakefile``` and ```16S_longconfig.yaml``` files.
 
@@ -119,7 +145,7 @@ snakemake -s short_snakefile --configfile short_config.yaml --use-conda --cores 
 ```
   Flye: 
     options: "-t 8"
-    sequencing_type: "--nano-corr"
+    sequencing_type: "--nano-raw"
   Minimap2:
     options: "-t 8"
     ax: "map-ont"
@@ -190,6 +216,13 @@ snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --core
 
 
 
+<details>
+  <summary><b>📃 Report</b></summary>
+
+Report is stored in ```~/GAnGA/tutorial/output/20_report``` for short reads workflow, ```~/GAnGA/tutorial/output/18_report``` for long reads workflow and ```~/GAnGA/tutorial/output/19_report``` for hybrid workflow
+
+Open the ```B_longum_report.html``` file in your web browser to see the consolidated report of the analysed genome. Links to the report files used to make the report are given below. You can hover over and click on the links to see the files in detail. 
 
 
+</details>
 
