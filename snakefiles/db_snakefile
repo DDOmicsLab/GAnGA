@@ -269,17 +269,27 @@ rule Panvita_setup:
         fi
 
         if [ ! -d "DB" ] || [ ! -d "Dependences" ]; then
-            echo "⬇️ SInstalling PanViTa..."
-	        #mkdir -p DB
-	        #mkdir -p Dependences
-            #mv {params.cd}/DB/ {params.cd}/Dependences/ ./
-            python3 panvita.py -u
-	        #rm -f ~/.panvita.db.paths ~/.panvita.dp.paths
-            #echo "{params.tools_dir}/ganga_databases/panvita/DB" > ~/.panvita.db.paths
-            #echo "{params.tools_dir}/ganga_databases/panvita/Dependences" > ~/.panvita.dp.paths
-        else
-            echo "✅ PanViTa databases already exist. Skipping download."
+                echo "⬇️ Installing PanViTa..."
+
+                max_tries=5
+                attempt=1
+
+            while [ $attempt -le $max_tries ]; do
+                echo "🔄 PanViTa install attempt $attempt / $max_tries"
+
+                python3 panvita.py -u || true
+
+            if [ -d "DB" ] && [ -d "Dependences" ]; then
+                echo "✅ PanViTa directories exist."
+                break
+            fi
+
+                echo "⚠️  DB/ or Dependences/ not found yet. Retrying..."
+                sleep 5
+                attempt=$((attempt + 1))
+            done
         fi
+
 
         if [ -f "panvita.py" ] && [ -d "DB" ] && [ -d "Dependences" ]; then
             if [ -f "DB/vfdb_core.dmnd" ]; then
