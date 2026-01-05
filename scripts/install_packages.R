@@ -15,7 +15,7 @@ bioc_packages <- c(
 # Install missing Bioconductor packages
 for (pkg in bioc_packages) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    BiocManager::install(pkg, ask = FALSE, update = TRUE)
+    BiocManager::install(version = "3.18", ask = FALSE, update = FALSE)
   }
 }
 
@@ -36,7 +36,7 @@ cran_packages <- c(
   "pkgconfig", "rlang", "rstudioapi", "utf8", "bit", "bit64", "brio",
   "rcmdcheck", "testthat", "crayon", "zip", "vroom", "isoband",
   "gh", "gitcreds", "askpass", "sys", "xopen", "profvis", "shiny",
-  "miniUI", "BiocVersion", "brew", "colorspace", "cpp11", "credentials",
+  "miniUI", "brew", "colorspace", "cpp11", "credentials",
   "diffobj", "generics",	"gtable", "hms", "htmlwidgets", "mgcv",	"munsell", "nlme",
   "pheatmap", "pillar",	"praise", "progress", "promises", "Rcpp", "roxygen2", "rprojroot",
   "rversions", "sourcetools", "stringi", "tidyselect", "tzdb", "urlchecker", "viridisLite",	
