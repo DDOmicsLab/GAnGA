@@ -56,7 +56,7 @@ cran_packages <- c(
   "diffobj", "generics", "ggsci",	"gtable", "hms", "htmlwidgets", "mgcv",	"munsell", "nlme",
   "pheatmap", "pillar",	"praise", "progress", "promises", "Rcpp", "roxygen2", "rprojroot",
   "rversions", "sourcetools", "stringi", "tidyselect", "tzdb", "urlchecker", "viridisLite",	
-  "waldo", "xfun", "xtable"
+  "waldo", "xtable"
 
 )
 
