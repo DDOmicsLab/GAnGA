@@ -441,7 +441,6 @@ dependencies:
   - r-vctrs=0.6.5=r43h0d4f4ea_1
   - r-viridislite=0.4.2=r43hc72bb7e_2
   - r-withr=3.0.2=r43hc72bb7e_0
-  - r-xfun
   - r-yaml=2.3.10=r43hdb488b9_0
   - racon=1.5.0=hdcf5f25_4
   - ratelimiter=1.2.0=pyhd8ed1ab_1003
