@@ -286,6 +286,13 @@ rule r_setup:
         """
         echo " Checking and installing R packages..."
 
+        set -euo pipefail
+
+        export R_LIBS_USER=""
+        export R_LIBS_SITE=""
+        export R_PROFILE_USER=""
+        export R_PROFILE_SITE=""
+
         if [ -f {output} ]; then
             echo "✅ R packages are already set up. Skipping installation."
         else

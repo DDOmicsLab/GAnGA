@@ -280,7 +280,7 @@ rule Panvita_setup:
                 python3 panvita.py -u || true
 
             if [ -d "DB" ] && [ -d "Dependences" ]; then
-                echo "✅ PanViTa directories exist."
+                echo "✅ PanViTa directories detected."
                 break
             fi
 

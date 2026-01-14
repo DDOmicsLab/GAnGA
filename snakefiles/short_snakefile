@@ -712,7 +712,7 @@ rule GenoVI:
         genovi -i {input.bakta} -o genovi -s draft --title {params.sample_name} --cogs {params.COGs} {params.options} &> {log}
         mv genovi/* {params.outdir}
         else
-        touch {output} && \    # Create empty placeholders to prevent errors 
+        touch {output} 
         echo "Skipping GenoVI for {params.sample_name} due to too many contigs ($contig_count)." &> {log} 
         fi
 
@@ -905,6 +905,14 @@ rule Quarto_report:
         30
     shell:
         """
+        export R_LIBS_USER=""
+        export R_LIBS_SITE=""
+        export R_PROFILE_USER=""
+        export R_PROFILE_SITE=""
+
+        # Optional: debug (logged once)
+        Rscript -e 'cat("R lib paths:\n"); print(.libPaths())' >> /mnt/8tb_new/test_genomes/ak/results/AK4/logs/quarto_report.log
+
         cp -r quarto_scripts/ {params.output_dir}
         cd {params.output_dir}/quarto_scripts/
         cp {input.absolute_paths} ./

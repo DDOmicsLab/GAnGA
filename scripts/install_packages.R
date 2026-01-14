@@ -1,3 +1,12 @@
+conda_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(conda_lib)) {
+  .libPaths(conda_lib)
+} else {
+  user <- Sys.getenv("USER")
+  .libPaths(paste0("/home/", user, "/miniconda3/envs/ganga/lib/R/library"))
+}
+cat("Using library path:", .libPaths(), "\n")
+
 # Set CRAN repo
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
@@ -12,11 +21,18 @@ bioc_packages <- c(
   "IRanges", "S4Vectors", "XVector", "zlibbioc"
 )
 
-# Install missing Bioconductor packages
-for (pkg in bioc_packages) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    BiocManager::install(version = "3.18", ask = FALSE, update = FALSE)
-  }
+# Check which packages are missing
+missing_bioc <- bioc_packages[!bioc_packages %in% rownames(installed.packages())]
+
+# Install all missing packages at once in the Conda env library
+if (length(missing_bioc) > 0) {
+  BiocManager::install(
+    missing_bioc,
+    version = "3.18",
+    ask = FALSE,
+    update = FALSE,
+    lib = .libPaths()[1]  # ensures installation in the correct library
+  )
 }
 
 # ---------------------- CRAN Packages ---------------------- #
@@ -37,10 +53,10 @@ cran_packages <- c(
   "rcmdcheck", "testthat", "crayon", "zip", "vroom", "isoband",
   "gh", "gitcreds", "askpass", "sys", "xopen", "profvis", "shiny",
   "miniUI", "brew", "colorspace", "cpp11", "credentials",
-  "diffobj", "generics",	"gtable", "hms", "htmlwidgets", "mgcv",	"munsell", "nlme",
+  "diffobj", "generics", "ggsci",	"gtable", "hms", "htmlwidgets", "mgcv",	"munsell", "nlme",
   "pheatmap", "pillar",	"praise", "progress", "promises", "Rcpp", "roxygen2", "rprojroot",
   "rversions", "sourcetools", "stringi", "tidyselect", "tzdb", "urlchecker", "viridisLite",	
-  "waldo", "xtable"
+  "waldo", "xfun", "xtable"
 
 )
 
