@@ -5,7 +5,7 @@ tools_dir = os.path.join(current_directory,"tools")
 rule all:
     input: 
                 expand("flags/{name}.done",
-                    name=["chopper_env", "ezaai_env", "fastani_env", "flye_env", "genovi_env", "quarto_env", "racon_env", "ragtag_env", "trimmomatic_env", "unicycler_env", "mlst_env", "checkm_env", "bakta_env", "rgi_env", "phigaro_env", "mobileogdb_env", "crispr_env", "panvita_env", "antismash_env", "pocp_env"]),
+                    name=["chopper_env", "ezaai_env", "fastani_env", "flye_env", "genovi_env", "racon_env", "ragtag_env", "trimmomatic_env", "unicycler_env", "mlst_env", "checkm_env", "bakta_env", "rgi_env", "phigaro_env", "mobileogdb_env", "crispr_env", "panvita_env", "antismash_env", "pocp_env"]),
 
 rule chopper_env:
     output: "flags/chopper_env.done"
@@ -30,11 +30,6 @@ rule flye_env:
 rule genovi_env:
     output: touch("flags/genovi_env.done")
     conda:  "envs/genovi.yaml"
-    shell:  "touch {output}"
-
-rule quarto_env:
-    output: touch("flags/quarto_env.done")
-    conda:  "envs/quarto.yaml"
     shell:  "touch {output}"
 
 rule racon_env:
