@@ -9,14 +9,14 @@ execute:
 editor: visual
 ---
 
-```{r libraries, include=FALSE, echo=FALSE, warning=FALSE}
-options(repos = c(CRAN = "https://cran.rstudio.com/"))
-required_packages <- c("knitr", "kableExtra", "dplyr", "BiocManager", "rmarkdown", "rvest", "jsonlite", "readr", "data.table", "xml2", "fastqcr","textshaping", "devtools", "png", "grid","gridExtra")
+```{r libraries, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+required_packages <- c(
+  "knitr", "kableExtra", "dplyr", "rmarkdown",
+  "rvest", "jsonlite", "readr", "data.table",
+  "xml2", "fastqcr", "png", "grid", "gridExtra"
+)
 
 for (pkg in required_packages) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg)
-  }
   library(pkg, character.only = TRUE)
 }
 
