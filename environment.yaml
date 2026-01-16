@@ -436,7 +436,7 @@ dependencies:
   - r-stringi=1.8.4=r43ha8ce623_2
   - r-systemfonts=1.1.0=r43h38d38ca_1
   - r-tibble=3.2.1=r43hdb488b9_3
-  - r-tinytex=0.54=r43hc72bb7e_0
+  #- r-tinytex=0.54=r43hc72bb7e_0
   - r-utf8=1.2.4=r43hb1dbf0f_1
   - r-vctrs=0.6.5=r43h0d4f4ea_1
   - r-viridislite=0.4.2=r43hc72bb7e_2
