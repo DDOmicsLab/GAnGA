@@ -58,6 +58,18 @@ knitr::asis_output(paste0("**", sample_dir, "**"))
 Statistics of forward raw reads:
 
 ```{r pretrim_stats_for, echo=FALSE, message=FALSE, warning=FALSE}
+# Find all FastQC zip files
+fastqc_zip_files_pretrim <- list.files(pretrim_qc.dir, full.names = TRUE, pattern = "\\.zip$")
+
+# Unzip each FastQC zip file only if not already unzipped
+for (zip_file in fastqc_zip_files_pretrim) {
+  unzipped_dir <- sub("\\.zip$", "", basename(zip_file))
+  unzipped_path <- file.path(pretrim_qc.dir, unzipped_dir)
+
+  if (!dir.exists(unzipped_path)) {
+    unzip(zip_file, exdir = pretrim_qc.dir)
+  }
+}
 subdirs <- list.dirs(pretrim_qc.dir, full.names = TRUE, recursive = FALSE)
 fastqc_path <- file.path(subdirs[grepl("(_R1_\\d+|_1)_fastqc$", subdirs)], "fastqc_data.txt")
 fastqc_lines <- readLines(fastqc_path)

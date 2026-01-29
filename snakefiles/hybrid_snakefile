@@ -900,7 +900,7 @@ rule Quarto_report:
         export R_PROFILE_SITE=""
 
         # Optional: debug (logged once)
-        Rscript -e 'cat("R lib paths:\n"); print(.libPaths())' >> /mnt/8tb_new/test_genomes/ak/results/AK4/logs/quarto_report.log
+        Rscript -e 'cat("R lib paths:\n"); print(.libPaths())'
 
         cp -r hybrid_quarto_scripts/ {params.output_dir}
         cd {params.output_dir}/hybrid_quarto_scripts/
