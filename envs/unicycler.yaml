@@ -4,5 +4,5 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.5.5
-  - unicycler
+  - python=3.8.20
+  - unicycler=0.5.1
