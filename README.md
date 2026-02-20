@@ -320,8 +320,8 @@ Tip: You can add the ```--dry-run``` flag to any snakemake command to verify tha
 <details>
   <summary><b>🎬 Demo</b></summary>
 
-  For a step-by-step guide, see the [GAnGA Demo](tutorial.md).
-
+  For a step-by-step guide, see the [GAnGA Demo](tutorial/tutorial.md).
+</details>
 
 ## List of tools used in GAnGA
 * [FastQC](https://github.com/s-andrews/FastQC)
