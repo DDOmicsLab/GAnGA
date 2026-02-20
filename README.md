@@ -40,12 +40,11 @@ To configure your Conda environment with the necessary channels, run the followi
 conda config --add channels https://repo.anaconda.com/pkgs/r
 conda config --add channels https://repo.anaconda.com/pkgs/main
 conda config --add channels defaults
-conda config --add channels ursky
 conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
 ### Important:
-The order of channels matters. The correct order should be: ```conda-forge``` → ```bioconda``` → ```ursky``` → ```defaults``` → ```https://repo.anaconda.com/pkgs/main``` → ```https://repo.anaconda.com/pkgs/r```. You can verify the current order using:
+The order of channels matters. The correct order should be: ```conda-forge``` → ```bioconda``` → ```defaults``` → ```https://repo.anaconda.com/pkgs/main``` → ```https://repo.anaconda.com/pkgs/r```. You can verify the current order using:
 ```
 conda config --show channels
 ```
@@ -55,6 +54,10 @@ If the terms of service have not been accepted for any channel, they should be a
 ```
 conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
 conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/r
+```
+Please disable strict priority if set 
+```
+conda config --set channel_priority flexible
 ```
 
 ###  Update Conda
@@ -152,6 +155,13 @@ But if you don’t, no worries — we’ve got you covered! Follow the steps in 
   <summary><b>🧬 Finding the Reference Genome</b></summary>
   
 #### 1. Set the output directory and add genome information in ```16S_config.yaml file``` file present in the ```configfiles``` directory
+
+```
+cd path/to/installation/directory/GAnGA
+cp snakefiles/16S_snakefile configfiles/16S_config.yaml ./
+
+```
+
 Example:
 ```
 #Directory where the output is expected
@@ -167,8 +177,6 @@ samples:
 Note: Make sure that your environment is activated
 ```conda activate ganga```
 ```
-cd path/to/installation/directory/GAnGA
-cp snakefiles/16S_snakefile configfiles/16S_config.yaml ./
 snakemake -s 16S_snakefile --configfile 16S_config.yaml --use-conda --cores 8
 ```
 ```{genome}_rrna.fa``` saved in ```11_barrnap``` directory in the ```output_directory``` will contain the 16S sequence
@@ -308,6 +316,11 @@ snakemake -s hybrid_snakefile --configfile hybrid_config.yaml --use-conda --core
 </details>
 
 Tip: You can add the ```--dry-run``` flag to any snakemake command to verify that everything is configured correctly before actual execution. This helps detect missing files, incorrect paths, or rule mismatches without running any jobs.
+
+<details>
+  <summary><b>🎬 Demo</b></summary>
+
+  For a step-by-step guide, see the [GAnGA Demo](tutorial.md).
 
 
 ## List of tools used in GAnGA
