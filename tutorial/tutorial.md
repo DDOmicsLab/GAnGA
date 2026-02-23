@@ -19,10 +19,44 @@ bash get_sra.sh
 Once you have your raw-reads ready, it's time to move ahead with setting up the config files
 
 
-### Installing GAnGA 
-Please follow the instructions given in the main ```README.md``` file for downloading and installing GAnGA.
+### GAnGA installation
 
-If GAnGA is installed in ```/home/user/```, its path would be ```/home/user/GAnGA```. Throughout this tutorial, we will refer to the GAnGA installation directory as ```/home/user/GAnGA``` for simplicity. ***Please replace this with the actual path where you have downloaded and installed GAnGA on your system.*** 
+If you install GAnGA in ```/home/user/```, the installation directory will be ```/home/user/GAnGA```.
+For simplicity, throughout this tutorial we will refer to the GAnGA installation directory as:
+
+```/home/user/GAnGA```
+
+In this tutorial, all required tools and databases will also be downloaded into ```/home/user/GAnGA``` for convenience. The complete setup requires approximately 105 GB of disk space (≈85 GB for databases and ≈20 GB for tools).
+
+Please ensure that your ```$HOME``` directory has sufficient free space available. If adequate space is not available in ```$HOME```, you may specify alternative directories where sufficient storage is available. Just make sure to provide the correct paths in the ```setup_config.yaml``` file.
+
+
+```
+cd path/to/GAnGA
+cp configfiles/setup_config.yaml snakefiles/envs_snakefile snakefiles/tools_snakefile snakefiles/db_snakefile ./
+```
+
+```
+# setup_config.yaml
+#Set parameters or options for setup
+#these are the default parameters, only change if you know what you're doing
+parameters:
+  path_to_db_dir: "/home/user/GAnGA" # Mention path of the directory where you want to store databases which take up around 85GB space
+  path_to_tools_dir: "/home/user/GAnGA" # Mention path of the directory where you want to store tools which take up around 20GB space
+  mobileog_db_download_path: "/home/user/Downloads/beatrix-1-6_v1_all.zip"  # Replace with the actual path to the mobileOG file downloaded
+```
+
+After configuring the ```setup_config.yaml``` file, run the following commands to complete the installation:
+
+```
+snakemake -s envs_snakefile --use-conda --cores 8
+snakemake -s tools_snakefile --configfile setup_config.yaml --use-conda --cores 8
+snakemake -s db_snakefile --configfile setup_config.yaml --use-conda --cores 8
+mv setup_config.yaml configfiles/
+mv envs_snakefile tools_snakefile db_snakefile snakefiles/
+```
+
+### GAnGA execution
 
 For executing GAnGA, we need to provide information about the raw reads, reference genome and taxonomic information such as genus and species of the genome to be analysed in the config files. For this you need to know the reference genome for your test genomes first. If you already know it, it's a CHERRY ON CAKE! Just be ready with the FASTA file of complete reference genome. But if you dont, NO WORRIES! We've got you covered. Go to the ```Finding the Reference Genome``` section to find a reference genome for your test genome.
 
@@ -34,6 +68,8 @@ For executing GAnGA, we need to provide information about the raw reads, referen
 ```
 #Directory where the output is expected
 outdir: "/home/user/GAnGA/tutorial/output"
+path_to_db_dir: "/home/user/GAnGA" #Directory where you have stored databases 
+path_to_tools_dir: "/home/user/GAnGA" #Directory where you have stored tools
 
 #List all the samples with the global path to their raw reads
 samples:
